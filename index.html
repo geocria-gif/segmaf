@@ -731,7 +731,6 @@ footer{
 </footer>
 
 <script>
-const API_URL = 'http://localhost:5000';
 const MAX_FILES = 5;
 
 // Mobile nav toggle
@@ -787,24 +786,31 @@ if(slides.length>1){
 }
 dots.forEach((d,idx)=>d.addEventListener('click',()=>{carIndex=idx;goToSlide(idx);}));
 
-// Form submission via AJAX
+// Form submission via FormSubmit.co (100% estático, sem backend)
+const FORM_ENDPOINT='https://formsubmit.co/ajax/segmaf@outlook.com';
 document.getElementById('contactForm').addEventListener('submit',async function(e){
   e.preventDefault();
   const btn=this.querySelector('button[type=submit]');
   const msg=document.getElementById('formMsg');
+  const f=new FormData(this);
+  const assunto=f.get('assunto')||'Solicita\u00E7\u00E3o';
+  const nome=f.get('nome')||'';
+  f.append('_subject','[SEGMAF Site] '+assunto+' - '+nome);
+  f.append('_captcha','false');
+  f.append('_honey','');
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Enviando...';
   msg.className='';msg.style.display='none';
   try{
-    const res=await fetch(API_URL+'/submit',{method:'POST',body:new FormData(this)});
+    const res=await fetch(FORM_ENDPOINT,{method:'POST',body:f});
     const data=await res.json();
-    if(res.ok){
+    if(data.success){
       msg.className='success';msg.textContent='Recebemos sua solicita\u00E7\u00E3o! Entraremos em contato em breve.';
       this.reset();fileInfo.textContent='Nenhum arquivo selecionado';
     }else{
-      msg.className='error';msg.textContent=data.erro||'Erro ao enviar. Tente novamente.';
+      msg.className='error';msg.textContent=data.message||'Erro ao enviar. Tente novamente.';
     }
   }catch{
-    msg.className='error';msg.textContent='Servidor offline. Envie para segmaf@outlook.com.';
+    msg.className='error';msg.textContent='Erro ao enviar. Verifique sua conex\u00E3o e tente novamente.';
   }
   msg.style.display='block';
   btn.disabled=false;btn.textContent='Enviar Solicita\u00E7\u00E3o';
