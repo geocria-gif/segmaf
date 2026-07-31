@@ -39,10 +39,23 @@ nav{
 }
 nav.scrolled{background:rgba(10,37,64,.98);box-shadow:0 4px 30px rgba(0,0,0,.3)}
 .nav-logo{
-  display:flex;align-items:center;gap:12px;
-  font-size:1.15rem;font-weight:700;color:var(--branco);letter-spacing:.5px;
+  display:flex;align-items:center;gap:14px;
 }
-.nav-logo span{color:var(--dourado)}
+.nav-logo img{
+  filter:drop-shadow(0 2px 8px rgba(242,101,34,.35));
+}
+.nav-brand{
+  display:flex;flex-direction:column;line-height:1.15;
+}
+.brand-name{
+  font-size:1.4rem;font-weight:800;letter-spacing:1.5px;
+  background:linear-gradient(135deg,var(--laranja),var(--dourado));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 2px 6px rgba(242,101,34,.25));
+}
+.brand-sub{
+  font-size:.6rem;color:var(--cinza);letter-spacing:1.6px;text-transform:uppercase;font-weight:600;
+}
 .nav-links{display:flex;gap:32px;list-style:none}
 .nav-links a{
   color:var(--cinza);font-size:.9rem;font-weight:500;
@@ -376,8 +389,11 @@ footer{
 <!-- ===== NAV ===== -->
 <nav id="navbar">
   <div class="nav-logo">
-    <img src="LOGO_SEGMAF2026.png" alt="SEGMAF" height="40" style="height:40px;width:auto;mix-blend-mode:multiply" />
-    <span style="font-size:1.15rem;font-weight:700;letter-spacing:.5px">SEGMAF<span style="color:var(--dourado)">.</span></span>
+    <img src="LOGO_SEGMAF2026.png" alt="SEGMAF" height="44" style="height:44px;width:auto;mix-blend-mode:multiply" />
+    <div class="nav-brand">
+      <span class="brand-name">SEGMAF</span>
+      <span class="brand-sub">Soluções em Limpeza Ltda</span>
+    </div>
   </div>
   <ul class="nav-links" id="navLinks">
     <li><a href="#servicos">Serviços</a></li>
