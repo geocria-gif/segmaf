@@ -100,15 +100,15 @@ nav.scrolled{background:rgba(10,37,64,.98);box-shadow:0 4px 30px rgba(0,0,0,.3)}
 }
 .screen-slides{
   position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);
-  width:clamp(180px,22.5vw,265px);height:clamp(300px,39vh,450px);z-index:5;
+  width:450px;height:703px;z-index:5;
 }
 .slide{
   position:absolute;left:0;right:0;top:0;bottom:0;width:100%;height:100%;
   border-radius:12px;object-fit:cover;margin:auto;
-  opacity:0;transform:scale(1.06);transition:opacity 1s cubic-bezier(.4,0,.2,1),transform 6s cubic-bezier(.4,0,.2,1);
+  opacity:0;transform:scale(1.06) rotate(14deg);transition:opacity 1s cubic-bezier(.4,0,.2,1),transform 6s cubic-bezier(.4,0,.2,1);
   box-shadow:0 16px 40px rgba(0,0,0,.45);
 }
-.slide.active{opacity:1;transform:scale(1)}
+.slide.active{opacity:1;transform:scale(1) rotate(14deg)}
 /* Service info abaixo dos painéis */
 .hero-service{
   margin-top:20px;text-align:center;position:relative;min-height:56px;
@@ -388,23 +388,23 @@ footer{
   .screen-panel.p1{width:clamp(60px,20vw,100px);height:clamp(100px,26vh,165px);transform:rotate(14deg) translateY(25px)}
   .screen-panel.p2,.screen-panel.p3{width:clamp(88px,28vw,135px);height:clamp(150px,38vh,230px)}
   .screen-panel.p3{transform:rotate(14deg) translateY(25px)}
-  .screen-slides{top:45%;width:clamp(92px,29vw,140px);height:clamp(160px,40vh,240px)}
+  .screen-slides{top:45%;width:clamp(110px,30vw,160px);height:clamp(170px,46vw,245px)}
   .hero-service{margin-top:16px;min-height:100px}
   .about-stats{grid-template-columns:1fr}
 }
 /* Tamanho exato paineis 1366x768 */
 @media(min-width:1281px) and (max-width:1440px){
-  .hero-screen{height:720px}
+  .hero-screen{height:760px}
   .screen-panel.p1{width:200px;height:480px;transform:rotate(14deg)}
   .screen-panel.p2,.screen-panel.p3{width:300px;height:652px;transform:rotate(14deg)}
-  .screen-slides{top:42%;width:300px;height:652px}
+  .screen-slides{top:42%}
 }
 /* Tamanho exato paineis 1920x1080 */
 @media(min-width:1600px){
   .hero-screen{height:880px}
   .screen-panel.p1{width:265px;height:421px;transform:rotate(14deg)}
   .screen-panel.p2,.screen-panel.p3{width:421px;height:786px;transform:rotate(14deg)}
-  .screen-slides{top:42%;width:421px;height:786px}
+  .screen-slides{top:42%}
 }
 </style>
 </head>
