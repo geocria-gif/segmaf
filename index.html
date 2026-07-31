@@ -81,24 +81,20 @@ nav.scrolled{background:rgba(10,37,64,.98);box-shadow:0 4px 30px rgba(0,0,0,.3)}
 }
 .screen-slides{
   position:absolute;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;
-  padding:14px;
 }
 .slide{
-  position:absolute;inset:14px;
-  border-radius:10px;object-fit:cover;width:calc(100% - 28px);height:calc(100% - 28px);
-  opacity:0;transform:scale(1.04);transition:opacity 1s cubic-bezier(.4,0,.2,1),transform 6s cubic-bezier(.4,0,.2,1);
-  box-shadow:0 10px 30px rgba(0,0,0,.3);
+  position:relative;width:76%;height:92%;flex-shrink:0;
+  border-radius:12px;object-fit:cover;
+  opacity:0;transform:scale(1.04) rotate(-3deg);transition:opacity 1s cubic-bezier(.4,0,.2,1),transform 6s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 16px 40px rgba(0,0,0,.45);
 }
-.slide.active{opacity:1;transform:scale(1)}
+.slide.active{opacity:1;transform:scale(1) rotate(-3deg)}
 /* Service info abaixo dos painéis */
 .hero-service{
   margin-top:20px;text-align:center;position:relative;min-height:110px;
 }
 .service-label{
-  display:inline-block;padding:5px 16px;border-radius:100px;
-  background:rgba(212,165,116,.12);border:1px solid rgba(212,165,116,.3);
-  color:var(--dourado);font-size:.72rem;letter-spacing:2px;text-transform:uppercase;
-  margin-bottom:12px;
+  display:none;
 }
 .service-info{
   position:relative;min-height:64px;
@@ -372,8 +368,7 @@ footer{
 @media(max-width:480px){
   .btn{padding:12px 24px;font-size:.85rem}
   .screen-panel{width:clamp(110px,32vw,150px);height:clamp(150px,42vw,200px)}
-  .screen-slides{padding:8px}
-  .slide{inset:8px;width:calc(100% - 16px);height:calc(100% - 16px)}
+  .slide{width:84%;height:94%}
   .hero-service{margin-top:16px;min-height:100px}
   .about-stats{grid-template-columns:1fr}
 }
@@ -432,7 +427,6 @@ footer{
         </div>
       </div>
       <div class="hero-service">
-        <div class="service-label">Nossos Serviços</div>
         <div class="service-info">
           <div class="service-info-item active">
             <h3>Limpeza de Painéis Solares</h3>
