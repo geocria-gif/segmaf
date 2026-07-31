@@ -242,9 +242,12 @@ nav.scrolled{background:rgba(10,37,64,.98);box-shadow:0 4px 30px rgba(0,0,0,.3)}
 .contact-form select{cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238899A6' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center;padding-right:44px}
 .contact-form input[type=file]::file-selector-button{padding:8px 16px;border-radius:8px;border:2px solid var(--laranja);background:transparent;color:var(--laranja);font-weight:600;cursor:pointer;transition:var(--transition);font-family:var(--font);font-size:.85rem}
 .contact-form input[type=file]::file-selector-button:hover{background:var(--laranja);color:var(--branco)}
+.file-info{font-size:.82rem;color:var(--cinza-escuro);margin-top:-8px;display:flex;align-items:center;gap:6px}
 #formMsg{padding:12px;border-radius:10px;font-size:.9rem;display:none}
 #formMsg.success{display:block;background:rgba(37,211,102,.12);color:#1a8a4a;border:1px solid rgba(37,211,102,.3)}
 #formMsg.error{display:block;background:rgba(242,101,34,.1);color:var(--laranja-escuro);border:1px solid rgba(242,101,34,.2)}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin2 .6s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin2{to{transform:rotate(360deg)}}
 /* ===== WHATSAPP FLOATING ===== */
 .whatsapp-float{
   position:fixed;bottom:24px;right:24px;z-index:999;
@@ -518,7 +521,8 @@ footer{
           <option value="Pulverizacao em Areas Irrigadas">Pulverização em Áreas Irrigadas</option>
           <option value="Outros">Outros</option>
         </select>
-        <input type="file" name="anexo" accept="image/*,.pdf" multiple />
+        <input type="file" name="anexo" accept="image/*,.pdf" multiple id="fileInput" />
+        <div class="file-info" id="fileInfo">Nenhum arquivo selecionado</div>
         <textarea name="mensagem" placeholder="Descreva seu serviço ou solicitação..." required></textarea>
         <div id="formMsg"></div>
         <button type="submit" class="btn btn-primary" style="align-self:flex-start">
@@ -572,7 +576,8 @@ footer{
 </footer>
 
 <script>
-const API_URL = 'http://localhost:5000'; // mude para URL do servidor quando hospedar
+const API_URL = 'http://localhost:5000';
+const MAX_FILES = 5;
 
 // Mobile nav toggle
 const toggle = document.getElementById('navToggle');
@@ -589,24 +594,39 @@ const observer=new IntersectionObserver((entries)=>{
 },{threshold:.1});
 document.querySelectorAll('.fade-up').forEach(el=>observer.observe(el));
 
+// File input - count and limit to 5
+const fileInput=document.getElementById('fileInput');
+const fileInfo=document.getElementById('fileInfo');
+fileInput.addEventListener('change',function(){
+  const files=Array.from(this.files);
+  if(files.length>MAX_FILES){
+    const kept=files.slice(0,MAX_FILES);
+    const dt=new DataTransfer();
+    kept.forEach(f=>dt.items.add(f));
+    this.files=dt.files;
+  }
+  const n=this.files.length;
+  fileInfo.textContent=n===0?'Nenhum arquivo selecionado':n+' arquivo'+(n>1?'s':'')+' selecionado'+(n>1?'s':'')+' (max '+MAX_FILES+')';
+});
+
 // Form submission via AJAX
 document.getElementById('contactForm').addEventListener('submit',async function(e){
   e.preventDefault();
   const btn=this.querySelector('button[type=submit]');
   const msg=document.getElementById('formMsg');
-  btn.disabled=true;btn.textContent='Enviando...';
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Enviando...';
   msg.className='';msg.style.display='none';
   try{
     const res=await fetch(API_URL+'/submit',{method:'POST',body:new FormData(this)});
     const data=await res.json();
     if(res.ok){
       msg.className='success';msg.textContent='Recebemos sua solicita\u00E7\u00E3o! Entraremos em contato em breve.';
-      this.reset();
+      this.reset();fileInfo.textContent='Nenhum arquivo selecionado';
     }else{
       msg.className='error';msg.textContent=data.erro||'Erro ao enviar. Tente novamente.';
     }
   }catch{
-    msg.className='error';msg.textContent='Servidor offline. Envie diretamente para segmaf@outlook.com.';
+    msg.className='error';msg.textContent='Servidor offline. Envie para segmaf@outlook.com.';
   }
   msg.style.display='block';
   btn.disabled=false;btn.textContent='Enviar Solicita\u00E7\u00E3o';
