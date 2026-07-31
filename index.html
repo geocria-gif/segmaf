@@ -60,43 +60,70 @@ nav.scrolled{background:rgba(10,37,64,.98);box-shadow:0 4px 30px rgba(0,0,0,.3)}
 .nav-toggle.active span:nth-child(2){opacity:0}
 .nav-toggle.active span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
 
-/* ===== HERO PANELS ===== */
-.hero-panels{
-  position:relative;display:flex;align-items:center;justify-content:center;
-  width:min(100%,620px);min-height:260px;gap:14px;
-  animation:float 6s ease-in-out infinite;
+/* ===== HERO SCREEN ===== */
+.hero-visual{width:100%}
+.hero-screen{
+  position:relative;width:min(100%,560px);height:clamp(260px,38vh,400px);
+  margin:0 auto;
 }
-.panel{
-  width:clamp(110px,13vw,180px);height:auto;
-  position:relative;flex-shrink:0;border-radius:10px;overflow:hidden;
-  border:2px solid rgba(212,165,116,.5);
-  filter:drop-shadow(0 14px 30px rgba(0,0,0,.4));
-  transform:rotate(-6deg);
+.screen-panel{
+  position:absolute;width:clamp(150px,22vw,250px);height:clamp(200px,30vh,320px);
+  border-radius:14px;overflow:hidden;border:2px solid rgba(212,165,116,.45);
+  filter:drop-shadow(0 20px 40px rgba(0,0,0,.45));
+  background:#0A2540;
 }
-.panel img{
-  width:100%;height:auto;display:block;
+.screen-panel.p1{left:0;bottom:6%;transform:rotate(-7deg);z-index:1}
+.screen-panel.p2{left:50%;top:0;transform:translateX(-50%);z-index:3}
+.screen-panel.p3{right:0;bottom:6%;transform:rotate(7deg);z-index:1}
+.screen-panel::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(200deg,rgba(255,255,255,.06),transparent 40%,rgba(10,37,64,.35));
 }
-.panel.p1{z-index:1}
-.panel.p2{z-index:2}
-.panel.p3{z-index:3}
-.panel::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(180deg,rgba(242,101,34,.1),rgba(10,37,64,.3));
+.screen-slides{
+  position:absolute;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;
+  padding:14px;
 }
-.hero-carousel{
-  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  width:min(72%,440px);min-height:110px;z-index:6;text-align:center;
+.slide{
+  position:absolute;inset:14px;
+  border-radius:10px;object-fit:cover;width:calc(100% - 28px);height:calc(100% - 28px);
+  opacity:0;transform:scale(1.04);transition:opacity 1s cubic-bezier(.4,0,.2,1),transform 6s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 10px 30px rgba(0,0,0,.3);
 }
-.carousel-item{
+.slide.active{opacity:1;transform:scale(1)}
+/* Service info abaixo dos painéis */
+.hero-service{
+  margin-top:20px;text-align:center;position:relative;min-height:110px;
+}
+.service-label{
+  display:inline-block;padding:5px 16px;border-radius:100px;
+  background:rgba(212,165,116,.12);border:1px solid rgba(212,165,116,.3);
+  color:var(--dourado);font-size:.72rem;letter-spacing:2px;text-transform:uppercase;
+  margin-bottom:12px;
+}
+.service-info{
+  position:relative;min-height:64px;
+}
+.service-info-item{
   position:absolute;left:0;right:0;top:0;
-  opacity:0;transform:translateY(10px);transition:opacity .8s ease,transform .8s ease;
-  font-size:clamp(.8rem,1.1vw,.95rem);color:var(--cinza);
-  background:rgba(10,37,64,.85);border:1px solid rgba(212,165,116,.4);
-  padding:14px 20px;border-radius:12px;font-weight:500;letter-spacing:.3px;
-  pointer-events:none;backdrop-filter:blur(6px);
+  opacity:0;transform:translateY(14px);transition:opacity .7s ease,transform .7s ease;
 }
-.carousel-item.active{opacity:1;transform:translateY(0)}
-.carousel-item strong{color:var(--dourado)}
+.service-info-item.active{opacity:1;transform:translateY(0)}
+.service-info-item h3{
+  font-size:clamp(1.1rem,2vw,1.5rem);color:var(--branco);font-weight:700;margin-bottom:4px;
+}
+.service-info-item p{
+  font-size:clamp(.82rem,1vw,.95rem);color:rgba(255,255,255,.55);max-width:480px;margin:0 auto;
+  line-height:1.5;
+}
+.hero-dots{
+  display:flex;justify-content:center;gap:8px;margin-top:14px;
+}
+.hero-dots .dot{
+  width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25);
+  transition:var(--transition);cursor:pointer;border:none;padding:0;
+}
+.hero-dots .dot.active{background:var(--laranja);transform:scale(1.35)}
+.hero-dots .dot:hover{background:var(--dourado)}
 
 /* ===== HERO ===== */
 .hero{
@@ -320,8 +347,6 @@ footer{
   .hero-grid{grid-template-columns:1fr;text-align:center;gap:40px}
   .hero-content{display:flex;flex-direction:column;align-items:center;order:2}
   .hero-visual{order:1}
-  .panel{width:clamp(100px,22vw,150px)}
-  .hero-carousel{width:min(80%,360px)}
   .hero-tagline{max-width:100%}
   .btn-group{justify-content:center}
   .about-grid{grid-template-columns:1fr;gap:40px}
@@ -346,10 +371,10 @@ footer{
 }
 @media(max-width:480px){
   .btn{padding:12px 24px;font-size:.85rem}
-  .panel{width:75px}
-  .hero-panels{min-height:200px;gap:6px}
-  .hero-carousel{top:50%;width:88%;min-height:96px}
-  .carousel-item{padding:10px 12px;font-size:.75rem}
+  .screen-panel{width:clamp(110px,32vw,150px);height:clamp(150px,42vw,200px)}
+  .screen-slides{padding:8px}
+  .slide{inset:8px;width:calc(100% - 16px);height:calc(100% - 16px)}
+  .hero-service{margin-top:16px;min-height:100px}
   .about-stats{grid-template-columns:1fr}
 }
 </style>
@@ -391,24 +416,60 @@ footer{
       </div>
     </div>
     <div class="hero-visual">
-      <div class="hero-panels">
-        <div class="panel p1">
-          <img src="painel_solar2.png" alt="Painel Solar" loading="lazy" />
-        </div>
-        <div class="panel p2">
-          <img src="painel_solar2.png" alt="Painel Solar" loading="lazy" />
-        </div>
-        <div class="panel p3">
-          <img src="painel_solar2.png" alt="Painel Solar" loading="lazy" />
+      <div class="hero-screen">
+        <div class="screen-panel p1"></div>
+        <div class="screen-panel p2"></div>
+        <div class="screen-panel p3"></div>
+        <div class="screen-slides">
+          <img class="slide active" src="painel-solar.png" alt="Limpeza de Painéis Solares" />
+          <img class="slide" src="Card2.png" alt="Limpeza Pós Obras" />
+          <img class="slide" src="Card3.png" alt="Capina Química em Usinas Solares" />
+          <img class="slide" src="Card4.png" alt="Capina Química Corporativa" />
+          <img class="slide" src="Card5.png" alt="Roçagem em Usinas Solares" />
+          <img class="slide" src="Card6.png" alt="Pulverização em Áreas Irrigadas" />
+          <img class="slide" src="Card7.png" alt="Captura de Abelhas" />
+          <img class="slide" src="Card8.png" alt="Limpeza de Cercamento e Aceiros" />
         </div>
       </div>
-      <div class="hero-carousel">
-        <div class="carousel-item active"><strong>Limpeza de Painéis Solares</strong> para máxima eficiência energética</div>
-        <div class="carousel-item"><strong>Capina Química</strong> e controle de vegetação em usinas</div>
-        <div class="carousel-item"><strong>Roçagem</strong> e limpeza de cercamento e aceiros</div>
-        <div class="carousel-item"><strong>Limpeza Pós Obras</strong> com padrão de excelência</div>
-        <div class="carousel-item"><strong>Pulverização</strong> em áreas irrigadas</div>
-        <div class="carousel-item"><strong>Captura de Abelhas</strong> com descarte responsável em apiário</div>
+      <div class="hero-service">
+        <div class="service-label">Nossos Serviços</div>
+        <div class="service-info">
+          <div class="service-info-item active">
+            <h3>Limpeza de Painéis Solares</h3>
+            <p>Máxima eficiência energética com limpeza especializada</p>
+          </div>
+          <div class="service-info-item">
+            <h3>Limpeza Pós Obras</h3>
+            <p>Ambientes impecáveis para entrega ou ocupação</p>
+          </div>
+          <div class="service-info-item">
+            <h3>Capina Química em Usinas Solares</h3>
+            <p>Controle seletivo de vegetação sem danos aos equipamentos</p>
+          </div>
+          <div class="service-info-item">
+            <h3>Capina Química e/ou Mecânica Corporativa</h3>
+            <p>Manejo profissional em ambientes corporativos</p>
+          </div>
+          <div class="service-info-item">
+            <h3>Roçagem em Usinas Solares</h3>
+            <p>Controle mecânico com segurança e eficiência</p>
+          </div>
+          <div class="service-info-item">
+            <h3>Pulverização em Áreas Irrigadas</h3>
+            <p>Técnicas avançadas de controle de pragas</p>
+          </div>
+          <div class="service-info-item">
+            <h3>Captura de Abelhas</h3>
+            <p>Manejo seguro com descarte responsável em apiário</p>
+          </div>
+          <div class="service-info-item">
+            <h3>Limpeza de Cercamento e Aceiros</h3>
+            <p>Prevenção de incêndios e proteção de estruturas</p>
+          </div>
+        </div>
+        <div class="hero-dots">
+          <span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
       </div>
     </div>
   </div>
@@ -663,16 +724,23 @@ fileInput.addEventListener('change',function(){
   fileInfo.textContent=n===0?'Nenhum arquivo selecionado':n+' arquivo'+(n>1?'s':'')+' selecionado'+(n>1?'s':'')+' (max '+MAX_FILES+')';
 });
 
-// Hero carousel - fade entre serviços
-const carouselItems=document.querySelectorAll('.carousel-item');
+// Hero screen - slides + nomes + dots sincronizados
+const slides=document.querySelectorAll('.slide');
+const serviceItems=document.querySelectorAll('.service-info-item');
+const dots=document.querySelectorAll('.hero-dots .dot');
 let carIndex=0;
-if(carouselItems.length>1){
-  setInterval(()=>{
-    carouselItems[carIndex].classList.remove('active');
-    carIndex=(carIndex+1)%carouselItems.length;
-    carouselItems[carIndex].classList.add('active');
-  },3000);
+function goToSlide(i){
+  slides.forEach((s,idx)=>s.classList.toggle('active',idx===i));
+  serviceItems.forEach((s,idx)=>s.classList.toggle('active',idx===i));
+  dots.forEach((d,idx)=>d.classList.toggle('active',idx===i));
 }
+if(slides.length>1){
+  setInterval(()=>{
+    carIndex=(carIndex+1)%slides.length;
+    goToSlide(carIndex);
+  },4000);
+}
+dots.forEach((d,idx)=>d.addEventListener('click',()=>{carIndex=idx;goToSlide(idx);}));
 
 // Form submission via AJAX
 document.getElementById('contactForm').addEventListener('submit',async function(e){
