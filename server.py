@@ -8,10 +8,10 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-EMAIL_REMETENTE = os.getenv("EMAIL_REMETENTE", "segmaf@outlook.com")
-SENHA_REMETENTE = os.getenv("SENHA_EMAIL")
+EMAIL_REMETENTE = os.getenv("EMAIL_REMETENTE", "")
+SENHA_REMETENTE = os.getenv("SENHA_EMAIL", "")
 EMAIL_DESTINO = "segmaf@outlook.com"
-SMTP_SERVER = "smtp-mail.outlook.com"
+SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 
 @app.route("/submit", methods=["POST"])
@@ -25,6 +25,8 @@ def submit():
 
     if not nome or not email or not assunto:
         return jsonify({"erro": "Preencha nome, email e assunto."}), 400
+    if not EMAIL_REMETENTE or not SENHA_REMETENTE:
+        return jsonify({"erro": "Servidor de email não configurado."}), 500
 
     corpo = f"""Nova solicita\u00E7\u00E3o do site SEGMAF
 
@@ -46,7 +48,7 @@ Mensagem:
     for f in arquivos:
         if f.filename:
             dados = f.read()
-            msg.add_attachment(dados, maintype="application", subtype="octet-stream", filename=f.filename, cid=str(uuid.uuid4()))
+            msg.add_attachment(dados, maintype="application", subtype="octet-stream", filename=f.filename)
 
     try:
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as smtp:
