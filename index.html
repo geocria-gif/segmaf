@@ -64,7 +64,7 @@ nav.scrolled{background:rgba(10,37,64,.98);box-shadow:0 4px 30px rgba(0,0,0,.3)}
 .hero-visual{width:100%}
 .hero-screen{
   position:relative;width:min(100%,560px);height:clamp(260px,38vh,400px);
-  margin:0 auto;
+  margin:0 auto;overflow:hidden;
 }
 .screen-panel{
   position:absolute;width:clamp(150px,22vw,250px);height:clamp(200px,30vh,320px);
@@ -80,15 +80,15 @@ nav.scrolled{background:rgba(10,37,64,.98);box-shadow:0 4px 30px rgba(0,0,0,.3)}
   background:linear-gradient(200deg,rgba(255,255,255,.06),transparent 40%,rgba(10,37,64,.35));
 }
 .screen-slides{
-  position:absolute;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;
+  position:absolute;inset:0;z-index:4;
 }
 .slide{
-  position:relative;width:76%;height:92%;flex-shrink:0;
-  border-radius:12px;object-fit:cover;
-  opacity:0;transform:scale(1.04) rotate(-3deg);transition:opacity 1s cubic-bezier(.4,0,.2,1),transform 6s cubic-bezier(.4,0,.2,1);
+  position:absolute;left:10%;right:10%;top:4%;bottom:4%;
+  border-radius:12px;object-fit:cover;margin:auto;
+  opacity:0;transform:scale(1.06);transition:opacity 1s cubic-bezier(.4,0,.2,1),transform 6s cubic-bezier(.4,0,.2,1);
   box-shadow:0 16px 40px rgba(0,0,0,.45);
 }
-.slide.active{opacity:1;transform:scale(1) rotate(-3deg)}
+.slide.active{opacity:1;transform:scale(1)}
 /* Service info abaixo dos painéis */
 .hero-service{
   margin-top:20px;text-align:center;position:relative;min-height:110px;
