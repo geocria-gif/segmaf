@@ -87,6 +87,8 @@ nav.scrolled{background:rgba(10,37,64,.98);box-shadow:0 4px 30px rgba(0,0,0,.3)}
   filter:drop-shadow(0 20px 45px rgba(0,0,0,.45));
   background:#0A2540;
 }
+.screen-panel.p1{width:clamp(120px,16vw,210px);height:clamp(190px,25vh,330px)}
+.screen-panel.p2,.screen-panel.p3{width:clamp(160px,21vw,275px);height:clamp(250px,34vh,440px)}
 .screen-panel img{
   width:100%;height:100%;object-fit:cover;display:block;
 }
@@ -99,7 +101,7 @@ nav.scrolled{background:rgba(10,37,64,.98);box-shadow:0 4px 30px rgba(0,0,0,.3)}
 }
 .screen-slides{
   position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);
-  width:clamp(150px,20vw,260px);height:clamp(240px,32vh,410px);z-index:5;
+  width:clamp(160px,21vw,275px);height:clamp(250px,34vh,440px);z-index:5;
 }
 .slide{
   position:absolute;left:0;right:0;top:0;bottom:0;width:100%;height:100%;
@@ -385,10 +387,10 @@ footer{
   .btn{padding:12px 24px;font-size:.85rem}
   .hero-screen{gap:8px;height:clamp(240px,46vh,320px)}
   .screen-panel{width:clamp(84px,26vw,130px);height:clamp(150px,36vh,240px)}
+  .screen-panel.p1{width:clamp(72px,22vw,110px);height:clamp(125px,30vh,200px)}
   .screen-panel.p1{transform:rotate(14deg) translateY(30px)}
   .screen-panel.p3{transform:rotate(14deg) translateY(30px)}
-  .screen-slides{top:45%;width:clamp(88px,27vw,140px);height:clamp(160px,38vh,250px)}
-  .hero-service{margin-top:16px;min-height:100px}
+  .screen-slides{top:45%;width:clamp(88px,27vw,140px);height:clamp(160px,38vh,250px)}  .hero-service{margin-top:16px;min-height:100px}
   .about-stats{grid-template-columns:1fr}
 }
 </style>
