@@ -91,13 +91,13 @@ nav.scrolled{background:rgba(10,37,64,.98);box-shadow:0 4px 30px rgba(0,0,0,.3)}
 .slide.active{opacity:1;transform:scale(1)}
 /* Service info abaixo dos painéis */
 .hero-service{
-  margin-top:20px;text-align:center;position:relative;min-height:110px;
+  margin-top:20px;text-align:center;position:relative;min-height:56px;
 }
 .service-label{
   display:none;
 }
 .service-info{
-  position:relative;min-height:64px;
+  position:relative;min-height:32px;
 }
 .service-info-item{
   position:absolute;left:0;right:0;top:0;
@@ -105,11 +105,8 @@ nav.scrolled{background:rgba(10,37,64,.98);box-shadow:0 4px 30px rgba(0,0,0,.3)}
 }
 .service-info-item.active{opacity:1;transform:translateY(0)}
 .service-info-item h3{
-  font-size:clamp(1.1rem,2vw,1.5rem);color:var(--branco);font-weight:700;margin-bottom:4px;
-}
-.service-info-item p{
-  font-size:clamp(.82rem,1vw,.95rem);color:rgba(255,255,255,.55);max-width:480px;margin:0 auto;
-  line-height:1.5;
+  font-size:clamp(1.1rem,2vw,1.5rem);color:var(--branco);font-weight:700;
+  white-space:nowrap;text-overflow:ellipsis;overflow:hidden;
 }
 .hero-dots{
   display:flex;justify-content:center;gap:8px;margin-top:14px;
@@ -430,35 +427,27 @@ footer{
         <div class="service-info">
           <div class="service-info-item active">
             <h3>Limpeza de Painéis Solares</h3>
-            <p>Máxima eficiência energética com limpeza especializada</p>
           </div>
           <div class="service-info-item">
             <h3>Limpeza Pós Obras</h3>
-            <p>Ambientes impecáveis para entrega ou ocupação</p>
           </div>
           <div class="service-info-item">
             <h3>Capina Química em Usinas Solares</h3>
-            <p>Controle seletivo de vegetação sem danos aos equipamentos</p>
           </div>
           <div class="service-info-item">
             <h3>Capina Química e/ou Mecânica Corporativa</h3>
-            <p>Manejo profissional em ambientes corporativos</p>
           </div>
           <div class="service-info-item">
             <h3>Roçagem em Usinas Solares</h3>
-            <p>Controle mecânico com segurança e eficiência</p>
           </div>
           <div class="service-info-item">
             <h3>Pulverização em Áreas Irrigadas</h3>
-            <p>Técnicas avançadas de controle de pragas</p>
           </div>
           <div class="service-info-item">
             <h3>Captura de Abelhas</h3>
-            <p>Manejo seguro com descarte responsável em apiário</p>
           </div>
           <div class="service-info-item">
             <h3>Limpeza de Cercamento e Aceiros</h3>
-            <p>Prevenção de incêndios e proteção de estruturas</p>
           </div>
         </div>
         <div class="hero-dots">
