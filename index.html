@@ -63,24 +63,26 @@ nav.scrolled{background:rgba(10,37,64,.98);box-shadow:0 4px 30px rgba(0,0,0,.3)}
 /* ===== HERO PANELS ===== */
 .hero-panels{
   position:relative;display:flex;align-items:center;justify-content:center;
-  width:min(100%,760px);min-height:240px;gap:12px;
+  width:min(100%,760px);min-height:240px;gap:14px;
   animation:float 6s ease-in-out infinite;
 }
 .panel{
   width:clamp(150px,20vw,250px);height:clamp(75px,10vw,125px);
-  position:relative;flex-shrink:0;
+  position:relative;flex-shrink:0;border-radius:12px;overflow:hidden;
+  border:2px solid rgba(212,165,116,.45);
   filter:drop-shadow(0 14px 30px rgba(0,0,0,.4));
   transform:rotate(-14deg);
 }
-.panel svg{width:100%;height:100%;display:block}
-.panel .sun{animation:pulse 3s ease-in-out infinite}
+.panel img{
+  width:100%;height:100%;object-fit:cover;
+  display:block;
+}
 .panel.p1{z-index:1}
 .panel.p2{z-index:2}
 .panel.p3{z-index:3}
-.panel .glow{
-  position:absolute;inset:0;border-radius:12px;
-  background:radial-gradient(circle at 50% 50%,rgba(242,101,34,.22),transparent 72%);
-  animation:pulse 3s ease-in-out infinite;
+.panel::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(242,101,34,.12),rgba(10,37,64,.35));
 }
 .hero-carousel{
   position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
@@ -90,7 +92,7 @@ nav.scrolled{background:rgba(10,37,64,.98);box-shadow:0 4px 30px rgba(0,0,0,.3)}
   position:absolute;left:0;right:0;top:0;
   opacity:0;transform:translateY(10px);transition:opacity .8s ease,transform .8s ease;
   font-size:clamp(.8rem,1.1vw,.95rem);color:var(--cinza);
-  background:rgba(10,37,64,.78);border:1px solid rgba(212,165,116,.35);
+  background:rgba(10,37,64,.82);border:1px solid rgba(212,165,116,.35);
   padding:14px 20px;border-radius:12px;font-weight:500;letter-spacing:.3px;
   pointer-events:none;backdrop-filter:blur(6px);
 }
@@ -392,46 +394,13 @@ footer{
     <div class="hero-visual">
       <div class="hero-panels">
         <div class="panel p1">
-          <div class="glow"></div>
-          <svg viewBox="0 0 200 100" fill="none">
-            <rect x="3" y="3" width="194" height="94" rx="12" stroke="#D4A574" stroke-width="3" fill="rgba(10,37,64,.6)"/>
-            <rect x="9" y="9" width="182" height="82" rx="7" stroke="rgba(212,165,116,.4)" stroke-width="1.5"/>
-            <g stroke="#F26522" stroke-width="2.5">
-              <path d="M9 50h182M100 9v82"/>
-            </g>
-            <g stroke="rgba(212,165,116,.35)" stroke-width="1.2">
-              <path d="M9 29h182M9 71h182M54 9v82M146 9v82"/>
-            </g>
-            <circle class="sun" cx="20" cy="20" r="5" fill="#F26522"/>
-          </svg>
+          <img src="painel_solar2.png" alt="Painel Solar" loading="lazy" />
         </div>
         <div class="panel p2">
-          <div class="glow"></div>
-          <svg viewBox="0 0 200 100" fill="none">
-            <rect x="3" y="3" width="194" height="94" rx="12" stroke="#D4A574" stroke-width="3" fill="rgba(10,37,64,.6)"/>
-            <rect x="9" y="9" width="182" height="82" rx="7" stroke="rgba(212,165,116,.4)" stroke-width="1.5"/>
-            <g stroke="#F26522" stroke-width="2.5">
-              <path d="M9 50h182M100 9v82"/>
-            </g>
-            <g stroke="rgba(212,165,116,.35)" stroke-width="1.2">
-              <path d="M9 29h182M9 71h182M54 9v82M146 9v82"/>
-            </g>
-            <circle class="sun" cx="180" cy="20" r="5" fill="#F26522"/>
-          </svg>
+          <img src="painel_solar2.png" alt="Painel Solar" loading="lazy" />
         </div>
         <div class="panel p3">
-          <div class="glow"></div>
-          <svg viewBox="0 0 200 100" fill="none">
-            <rect x="3" y="3" width="194" height="94" rx="12" stroke="#D4A574" stroke-width="3" fill="rgba(10,37,64,.6)"/>
-            <rect x="9" y="9" width="182" height="82" rx="7" stroke="rgba(212,165,116,.4)" stroke-width="1.5"/>
-            <g stroke="#F26522" stroke-width="2.5">
-              <path d="M9 50h182M100 9v82"/>
-            </g>
-            <g stroke="rgba(212,165,116,.35)" stroke-width="1.2">
-              <path d="M9 29h182M9 71h182M54 9v82M146 9v82"/>
-            </g>
-            <circle class="sun" cx="100" cy="20" r="5" fill="#F26522"/>
-          </svg>
+          <img src="painel_solar2.png" alt="Painel Solar" loading="lazy" />
         </div>
       </div>
       <div class="hero-carousel">
