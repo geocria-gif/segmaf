@@ -231,13 +231,32 @@ nav.scrolled{background:rgba(10,37,64,.98);box-shadow:0 4px 30px rgba(0,0,0,.3)}
 .contact-item .label{font-size:.8rem;color:var(--cinza-escuro);margin-bottom:2px}
 .contact-item .value{font-size:.95rem;font-weight:600;color:var(--azul)}
 .contact-form{display:flex;flex-direction:column;gap:16px}
-.contact-form input,.contact-form textarea{
+.contact-form input,.contact-form textarea,.contact-form select{
   width:100%;padding:14px 18px;border-radius:12px;border:2px solid rgba(10,37,64,.08);
   font-family:var(--font);font-size:.95rem;transition:var(--transition);
   background:var(--branco);outline:none;
 }
-.contact-form input:focus,.contact-form textarea:focus{border-color:var(--laranja);box-shadow:0 0 0 4px rgba(242,101,34,.08)}
+.contact-form input:focus,.contact-form textarea:focus,.contact-form select:focus{border-color:var(--laranja);box-shadow:0 0 0 4px rgba(242,101,34,.08)}
 .contact-form textarea{min-height:140px;resize:vertical}
+.contact-form select{cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238899A6' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center;padding-right:44px}
+.contact-form input[type=file]::file-selector-button{padding:8px 16px;border-radius:8px;border:2px solid var(--laranja);background:transparent;color:var(--laranja);font-weight:600;cursor:pointer;transition:var(--transition);font-family:var(--font);font-size:.85rem}
+.contact-form input[type=file]::file-selector-button:hover{background:var(--laranja);color:var(--branco)}
+/* ===== WHATSAPP FLOATING ===== */
+.whatsapp-float{
+  position:fixed;bottom:24px;right:24px;z-index:999;
+  width:60px;height:60px;border-radius:50%;
+  background:#25D366;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 20px rgba(37,211,102,.4);
+  transition:var(--transition);cursor:pointer;
+}
+.whatsapp-float:hover{transform:scale(1.1);box-shadow:0 8px 32px rgba(37,211,102,.5)}
+.whatsapp-float svg{width:32px;height:32px;fill:#fff}
+.whatsapp-float .tooltip{
+  position:absolute;right:70px;background:var(--azul);color:var(--branco);
+  padding:8px 16px;border-radius:8px;font-size:.8rem;white-space:nowrap;
+  opacity:0;pointer-events:none;transition:var(--transition);
+}
+.whatsapp-float:hover .tooltip{opacity:1}
 
 /* ===== FOOTER ===== */
 footer{
@@ -456,14 +475,14 @@ footer{
           <div class="icon">&#128222;</div>
           <div>
             <div class="label">Telefone</div>
-            <div class="value">(XX) XXXX-XXXX</div>
+            <div class="value">(74) 99926-7070</div>
           </div>
         </div>
         <div class="contact-item">
           <div class="icon">&#9993;</div>
           <div>
             <div class="label">E-mail</div>
-            <div class="value">contato@segmaf.com.br</div>
+            <div class="value">segmaf@outlook.com</div>
           </div>
         </div>
         <div class="contact-item">
@@ -481,11 +500,25 @@ footer{
           </div>
         </div>
       </div>
-      <form class="contact-form fade-up" onsubmit="event.preventDefault();alert('Obrigado! Entraremos em contato em breve.')">
-        <input type="text" placeholder="Nome" required />
-        <input type="email" placeholder="E-mail" required />
-        <input type="tel" placeholder="Telefone" />
-        <textarea placeholder="Descreva seu serviço ou solicitação..." required></textarea>
+      <form class="contact-form fade-up" action="https://formsubmit.co/segmaf@outlook.com" method="POST" enctype="multipart/form-data">
+        <input type="text" name="nome" placeholder="Nome" required />
+        <input type="email" name="email" placeholder="E-mail" required />
+        <input type="tel" name="telefone" placeholder="Telefone" />
+        <select name="assunto" required>
+          <option value="" disabled selected>Selecione o assunto</option>
+          <option value="Capina Quimica em Usinas Solares">Capina Química em Usinas Solares</option>
+          <option value="Capina Quimica Corporativa">Capina Química e/ou Mecânica Corporativa</option>
+          <option value="Limpeza de Paineis Solares">Limpeza de Painéis Solares</option>
+          <option value="Limpeza Pos Obras">Limpeza Pós Obras</option>
+          <option value="Rocagem em Usinas Solares">Roçagem em Usinas Solares</option>
+          <option value="Pulverizacao em Areas Irrigadas">Pulverização em Áreas Irrigadas</option>
+          <option value="Outros">Outros</option>
+        </select>
+        <input type="file" name="anexo" accept="image/*,.pdf" />
+        <textarea name="mensagem" placeholder="Descreva seu serviço ou solicitação..." required></textarea>
+        <input type="hidden" name="_captcha" value="false" />
+        <input type="hidden" name="_template" value="table" />
+        <input type="hidden" name="_subject" value="Novo orçamento do site SEGMAF" />
         <button type="submit" class="btn btn-primary" style="align-self:flex-start">
           Enviar Solicitação
         </button>
@@ -494,6 +527,11 @@ footer{
   </div>
 </section>
 
+<!-- ===== WHATSAPP FLOATING ===== -->
+<a href="https://wa.me/5574999267070?text=Ol%C3%A1!%20Gostaria%20de%20solicitar%20um%20or%C3%A7amento." class="whatsapp-float" target="_blank" rel="noopener" aria-label="WhatsApp">
+  <span class="tooltip">Fale conosco!</span>
+  <svg viewBox="0 0 32 32"><path d="M16 2C8.268 2 2 8.268 2 16c0 2.75.72 5.34 2.08 7.57L2 30l6.67-1.96A13.91 13.91 0 0016 30c7.732 0 14-6.268 14-14S23.732 2 16 2zm6.25 19.69c-.35.94-1.37 1.71-2.25 1.96-.6.17-1.39.16-2.25-.03a12.77 12.77 0 01-3.87-2.07 14.05 14.05 0 01-3.58-4.15c-.73-1.18-.9-2.13-.9-2.93 0-.58.13-.98.33-1.28.2-.3.45-.52.7-.69.24-.17.5-.27.57-.43.08-.16.08-.33.03-.5-.05-.17-.35-1.07-.52-1.5-.17-.43-.35-.43-.55-.44-.14 0-.35 0-.53.03-.18.03-.45.2-.7.47-.25.27-1 1.02-1 2.52 0 1.5.86 2.96 1.07 3.22.21.27 1.74 2.77 4.31 3.87 2.57 1.1 2.57.73 3 .68.44-.05 1.4-.57 1.6-1.12.2-.55.2-1.03.14-1.13-.06-.1-.22-.16-.46-.28z"/></svg>
+</a>
 <!-- ===== FOOTER ===== -->
 <footer>
   <div class="footer-inner">
