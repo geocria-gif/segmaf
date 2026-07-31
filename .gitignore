@@ -1,3 +1,6 @@
 .env
 __pycache__/
 *.pyc
+download.png
+download.svg
+smtp_log.txt
