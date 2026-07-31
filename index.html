@@ -76,8 +76,8 @@ nav.scrolled{background:rgba(10,37,64,.98);box-shadow:0 4px 30px rgba(0,0,0,.3)}
 /* ===== HERO SCREEN ===== */
 .hero-visual{width:100%}
 .hero-screen{
-  position:relative;width:min(100%,840px);height:clamp(400px,52vh,600px);
-  margin:0 auto;display:flex;align-items:flex-start;justify-content:center;gap:14px;
+  position:relative;width:min(100%,900px);height:clamp(400px,52vh,600px);
+  margin:0 auto;display:flex;align-items:flex-start;justify-content:center;gap:-20px;
   animation:float 6s ease-in-out infinite;
 }
 .screen-panel{
@@ -154,8 +154,8 @@ nav.scrolled{background:rgba(10,37,64,.98);box-shadow:0 4px 30px rgba(0,0,0,.3)}
   background:linear-gradient(90deg,var(--laranja),var(--dourado),var(--laranja));
 }
 .hero-grid{
-  display:grid;grid-template-columns:1fr 1.35fr;gap:50px;align-items:center;
-  width:100%;max-width:1400px;margin:0 auto;position:relative;z-index:2;
+  display:grid;grid-template-columns:1fr 1.8fr;gap:40px;align-items:center;
+  width:100%;max-width:1700px;margin:0 auto;position:relative;z-index:2;
 }
 .hero-content h1{
   font-size:clamp(2.2rem,5vw,4rem);font-weight:800;color:var(--branco);
@@ -391,6 +391,20 @@ footer{
   .screen-slides{top:45%;width:clamp(92px,29vw,140px);height:clamp(160px,40vh,240px)}
   .hero-service{margin-top:16px;min-height:100px}
   .about-stats{grid-template-columns:1fr}
+}
+/* Tamanho exato paineis 1366x768 */
+@media(min-width:1281px) and (max-width:1440px){
+  .hero-screen{height:720px}
+  .screen-panel.p1{width:200px;height:480px;transform:rotate(14deg)}
+  .screen-panel.p2,.screen-panel.p3{width:300px;height:652px;transform:rotate(14deg)}
+  .screen-slides{top:42%;width:300px;height:652px}
+}
+/* Tamanho exato paineis 1920x1080 */
+@media(min-width:1600px){
+  .hero-screen{height:880px}
+  .screen-panel.p1{width:265px;height:421px;transform:rotate(14deg)}
+  .screen-panel.p2,.screen-panel.p3{width:421px;height:786px;transform:rotate(14deg)}
+  .screen-slides{top:42%;width:421px;height:786px}
 }
 </style>
 </head>
