@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://segmaf.com.br/sitemap.xml
