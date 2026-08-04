@@ -120,7 +120,11 @@ def health():
 
 @app.route("/api/orcamento", methods=["POST"])
 def api_orcamento():
-    return processar(request.form, request.files.getlist("anexo"))
+    try:
+        return processar(request.form, request.files.getlist("anexo"))
+    except Exception as e:
+        log(f"ERRO nao tratado no /api/orcamento: {e!r}")
+        return jsonify({"success": False, "message": f"Erro interno do servidor: {e!r}"}), 500
 
 
 @app.route("/submit", methods=["POST"])
