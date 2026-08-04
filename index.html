@@ -412,16 +412,13 @@ nav.scrolled{background:rgba(10,37,64,.98);box-shadow:0 4px 30px rgba(0,0,0,.3)}
 .section-dark .section-sub{color:rgba(255,255,255,.6)}
 
 /* ===== AREA DE ATENDIMENTO ===== */
-.areas-grid{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;
-  list-style:none;max-width:900px;margin:0 auto;
+.map-container{
+  position:relative;z-index:0;isolation:isolate;width:100%;max-width:900px;margin:0 auto;
+  border-radius:16px;overflow:hidden;box-shadow:var(--shadow);
+  border:1px solid rgba(255,255,255,.12);
 }
-.areas-grid li{
-  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
-  border-radius:10px;padding:12px 16px;font-size:.95rem;font-weight:500;
-  color:rgba(255,255,255,.85);text-align:center;transition:var(--transition);
-}
-.areas-grid li:hover{background:rgba(255,255,255,.12);transform:translateY(-2px)}
+#mapaAtendimento{width:100%;height:460px;background:#e8e8e8}
+.map-note{text-align:center;margin-top:18px;font-size:.92rem;color:rgba(255,255,255,.6)}
 
 /* ===== SERVICES ===== */
 .services-grid{
@@ -621,6 +618,8 @@ footer{
   .screen-slides{top:42%}
 }
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 </head>
 <body>
 
@@ -827,30 +826,13 @@ footer{
     <div class="section-label fade-up">Onde Atuamos</div>
     <h2 class="section-title fade-up">Área de Atendimento</h2>
     <p class="section-sub fade-up">
-      Atendemos usinas fotovoltaicas, empresas e propriedades rurais em Irecê e região
-      Centro Norte da Bahia.
+      Sediados em Irecê, atendemos usinas fotovoltaicas, empresas e propriedades rurais
+      em um raio de até 200 km pela região Centro Norte da Bahia.
     </p>
-    <ul class="areas-grid fade-up">
-      <li>Irecê</li>
-      <li>América Dourada</li>
-      <li>Barra do Mendes</li>
-      <li>Barro Alto</li>
-      <li>Cafarnaum</li>
-      <li>Canarana</li>
-      <li>Central</li>
-      <li>Gentio do Ouro</li>
-      <li>Ibipeba</li>
-      <li>Ibititá</li>
-      <li>Iraquara</li>
-      <li>João Dourado</li>
-      <li>Jussara</li>
-      <li>Lapão</li>
-      <li>Mulungu do Morro</li>
-      <li>Presidente Dutra</li>
-      <li>São Gabriel</li>
-      <li>Souto Soares</li>
-      <li>Uibaí</li>
-    </ul>
+    <div class="map-container fade-up">
+      <div id="mapaAtendimento" role="application" aria-label="Mapa da área de atendimento da SEGMAF, com Irecê ao centro e raio de 200 km"></div>
+    </div>
+    <p class="map-note fade-up">Irecê — BA · raio de 200 km de área de atendimento</p>
   </div>
 </section>
 
@@ -1049,6 +1031,27 @@ document.getElementById('contactForm').addEventListener('submit',async function(
   msg.style.display='block';
   btn.disabled=false;btn.textContent='Enviar Solicita\u00E7\u00E3o';
 });
+
+// Mapa da area de atendimento (Leaflet + OpenStreetMap)
+const mapaEl=document.getElementById('mapaAtendimento');
+if(mapaEl && typeof L!=='undefined'){
+  const irece=[-11.3039,-41.8567];
+  const raio=200000;
+  const mapa=L.map(mapaEl,{scrollWheelZoom:false}).setView(irece,8);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:18,
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(mapa);
+  const area=L.circle(irece,{
+    radius:raio,color:'#F26522',weight:2,fillColor:'#F26522',fillOpacity:0.08
+  }).addTo(mapa);
+  area.bindTooltip('Raio de 200 km',{permanent:false,direction:'center'});
+  L.marker(irece).addTo(mapa)
+    .bindPopup('<strong>Irec\u00EA — BA</strong><br>Base de opera\u00E7\u00F5es')
+    .openPopup();
+  mapa.fitBounds(area.getBounds(),{padding:[40,40]});
+  mapaEl.addEventListener('click',()=>mapa.scrollWheelZoom.enable());
+}
 </script>
 </body>
 </html>
