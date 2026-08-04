@@ -115,7 +115,7 @@ def processar(pedido, arquivos):
 
 @app.route("/", methods=["GET"])
 def health():
-    return jsonify({"status": "ok", "servico": "SEGMAF API"}), 200
+    return jsonify({"status": "ok", "servico": "SEGMAF API", "build": "diagnostico-2"}), 200
 
 
 @app.route("/api/orcamento", methods=["POST"])
