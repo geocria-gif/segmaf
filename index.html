@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Limpeza de Painéis Solares, Capina e Manutenção de Usinas Solares | SEGMAF</title>
-<meta name="description" content="Limpeza de painéis solares, capina química, roçagem, pulverização e limpeza pós-obras em usinas fotovoltaicas. Solicite um orçamento com a SEGMAF." />
+<meta name="description" content="Limpeza de painéis solares, capina química, roçagem, pulverização e limpeza pós-obras em usinas fotovoltaicas. Atendemos em Irecê e região Centro Norte da Bahia. Solicite um orçamento com a SEGMAF." />
 <link rel="canonical" href="https://segmaf.com.br/" />
 <meta property="og:type" content="website" />
 <meta property="og:locale" content="pt_BR" />
@@ -36,14 +36,51 @@
       "foundingDate": "2026",
       "address": {
         "@type": "PostalAddress",
+        "addressLocality": "Irecê",
+        "addressRegion": "BA",
         "addressCountry": "BR"
       },
+      "areaServed": [
+        { "@type": "City", "name": "Irecê" },
+        { "@type": "City", "name": "América Dourada" },
+        { "@type": "City", "name": "Barra do Mendes" },
+        { "@type": "City", "name": "Barro Alto" },
+        { "@type": "City", "name": "Cafarnaum" },
+        { "@type": "City", "name": "Canarana" },
+        { "@type": "City", "name": "Central" },
+        { "@type": "City", "name": "Gentio do Ouro" },
+        { "@type": "City", "name": "Ibipeba" },
+        { "@type": "City", "name": "Ibititá" },
+        { "@type": "City", "name": "Iraquara" },
+        { "@type": "City", "name": "João Dourado" },
+        { "@type": "City", "name": "Jussara" },
+        { "@type": "City", "name": "Lapão" },
+        { "@type": "City", "name": "Mulungu do Morro" },
+        { "@type": "City", "name": "Presidente Dutra" },
+        { "@type": "City", "name": "São Gabriel" },
+        { "@type": "City", "name": "Souto Soares" },
+        { "@type": "City", "name": "Uibaí" }
+      ],
+      "openingHoursSpecification": [
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          "opens": "07:00",
+          "closes": "17:00"
+        },
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": "Saturday",
+          "opens": "07:00",
+          "closes": "12:00"
+        }
+      ],
       "contactPoint": {
         "@type": "ContactPoint",
         "telephone": "+5574999267070",
         "contactType": "customer service",
         "availableLanguage": "Portuguese",
-        "areaServed": "BR"
+        "areaServed": "Irecê e região Centro Norte da Bahia, Brasil"
       },
       "sameAs": [
         "https://wa.me/5574999267070"
@@ -60,7 +97,7 @@
       "serviceType": "Limpeza de painéis fotovoltaicos",
       "description": "Limpeza especializada de painéis solares para máxima eficiência energética em usinas fotovoltaicas.",
       "provider": { "@id": "https://segmaf.com.br/#empresa" },
-      "areaServed": "BR",
+      "areaServed": "Irecê e região Centro Norte da Bahia, Brasil",
       "url": "https://segmaf.com.br/#servicos"
     },
     {
@@ -70,7 +107,7 @@
       "serviceType": "Controle de vegetação",
       "description": "Capina química e/ou mecânica para controle de vegetação em usinas solares e ambientes corporativos.",
       "provider": { "@id": "https://segmaf.com.br/#empresa" },
-      "areaServed": "BR",
+      "areaServed": "Irecê e região Centro Norte da Bahia, Brasil",
       "url": "https://segmaf.com.br/#servicos"
     },
     {
@@ -80,7 +117,7 @@
       "serviceType": "Roçagem e limpeza de aceiros",
       "description": "Roçagem, limpeza de cercamento e aceiros para prevenção de incêndios em usinas fotovoltaicas.",
       "provider": { "@id": "https://segmaf.com.br/#empresa" },
-      "areaServed": "BR",
+      "areaServed": "Irecê e região Centro Norte da Bahia, Brasil",
       "url": "https://segmaf.com.br/#servicos"
     },
     {
@@ -90,7 +127,7 @@
       "serviceType": "Pulverização",
       "description": "Pulverização e controle de pragas em áreas irrigadas com técnicas avançadas.",
       "provider": { "@id": "https://segmaf.com.br/#empresa" },
-      "areaServed": "BR",
+      "areaServed": "Irecê e região Centro Norte da Bahia, Brasil",
       "url": "https://segmaf.com.br/#servicos"
     },
     {
@@ -374,6 +411,18 @@ nav.scrolled{background:rgba(10,37,64,.98);box-shadow:0 4px 30px rgba(0,0,0,.3)}
 }
 .section-dark .section-sub{color:rgba(255,255,255,.6)}
 
+/* ===== AREA DE ATENDIMENTO ===== */
+.areas-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;
+  list-style:none;max-width:900px;margin:0 auto;
+}
+.areas-grid li{
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;padding:12px 16px;font-size:.95rem;font-weight:500;
+  color:rgba(255,255,255,.85);text-align:center;transition:var(--transition);
+}
+.areas-grid li:hover{background:rgba(255,255,255,.12);transform:translateY(-2px)}
+
 /* ===== SERVICES ===== */
 .services-grid{
   display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;
@@ -587,6 +636,7 @@ footer{
   <ul class="nav-links" id="navLinks">
     <li><a href="#servicos">Serviços</a></li>
     <li><a href="#sobre">Quem Somos</a></li>
+    <li><a href="#atendimento">Área de Atendimento</a></li>
     <li><a href="#contato">Contato</a></li>
   </ul>
   <button class="nav-toggle" id="navToggle" aria-label="Menu">
@@ -771,6 +821,39 @@ footer{
   </div>
 </section>
 
+<!-- ===== ÁREA DE ATENDIMENTO ===== -->
+<section class="section section-dark" id="atendimento">
+  <div class="section-inner">
+    <div class="section-label fade-up">Onde Atuamos</div>
+    <h2 class="section-title fade-up">Área de Atendimento</h2>
+    <p class="section-sub fade-up">
+      Atendemos usinas fotovoltaicas, empresas e propriedades rurais em Irecê e região
+      Centro Norte da Bahia.
+    </p>
+    <ul class="areas-grid fade-up">
+      <li>Irecê</li>
+      <li>América Dourada</li>
+      <li>Barra do Mendes</li>
+      <li>Barro Alto</li>
+      <li>Cafarnaum</li>
+      <li>Canarana</li>
+      <li>Central</li>
+      <li>Gentio do Ouro</li>
+      <li>Ibipeba</li>
+      <li>Ibititá</li>
+      <li>Iraquara</li>
+      <li>João Dourado</li>
+      <li>Jussara</li>
+      <li>Lapão</li>
+      <li>Mulungu do Morro</li>
+      <li>Presidente Dutra</li>
+      <li>São Gabriel</li>
+      <li>Souto Soares</li>
+      <li>Uibaí</li>
+    </ul>
+  </div>
+</section>
+
 <!-- ===== CONTATO ===== -->
 <section class="section section-light" id="contato">
   <div class="section-inner">
@@ -850,7 +933,7 @@ footer{
   <div class="footer-inner">
     <div class="footer-grid">
       <div class="footer-brand">
-        <p>SEGMAF SOLUÇÕES EM LIMPEZA LTDA — Soluções especializadas em limpeza e manutenção preventiva para o setor de energia renovável.</p>
+        <p>SEGMAF SOLUÇÕES EM LIMPEZA LTDA — Soluções especializadas em limpeza e manutenção preventiva para o setor de energia renovável. Atendemos usinas fotovoltaicas, empresas e propriedades rurais em Irecê e região Centro Norte da Bahia.</p>
         <div class="nav-logo">
           <img src="LOGO_SEGMAF2026.png" alt="SEGMAF" height="128" style="height:128px;width:auto" />
         </div>
