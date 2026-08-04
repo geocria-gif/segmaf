@@ -1,109 +1,133 @@
-import os, smtplib, uuid, threading
+import os
+import smtplib
 from email.message import EmailMessage
-from dotenv import load_dotenv
-from flask import Flask, request, jsonify
+from email.utils import formataddr
+
+from flask import Flask, jsonify, request
 from flask_cors import CORS
-load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=[o.strip() for o in os.environ.get("ALLOWED_ORIGINS", "*").split(",") if o.strip()])
+app.config["MAX_CONTENT_LENGTH"] = int(os.environ.get("MAX_TOTAL_MB", "25")) * 1024 * 1024
 
-EMAIL_REMETENTE = os.getenv("EMAIL_REMETENTE", "")
-SENHA_REMETENTE = os.getenv("SENHA_EMAIL", "")
-EMAIL_DESTINO = "segmaf@outlook.com"
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
+SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.office365.com")
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+SMTP_USER = os.environ.get("SMTP_USER", "")
+SMTP_PASS = os.environ.get("SMTP_PASS", "")
+EMAIL_FROM = os.environ.get("EMAIL_FROM", SMTP_USER) or SMTP_USER
+EMAIL_TO = os.environ.get("EMAIL_TO", "segmaf@outlook.com")
 
-TAMANHO_MAX_TOTAL = 20 * 1024 * 1024
-TAMANHO_MAX_ARQ = 8 * 1024 * 1024
+MAX_FILES = int(os.environ.get("MAX_FILES", "5"))
+MAX_FILE_MB = int(os.environ.get("MAX_FILE_MB", "8"))
+MAX_TOTAL_MB = int(os.environ.get("MAX_TOTAL_MB", "20"))
 
-_smtp_lock = threading.Lock()
-_smtp_conn = None
 
-def log_envio(texto):
-    try:
-        with open("smtp_log.txt", "a", encoding="utf-8") as log:
-            log.write(texto + "\n")
-    except Exception:
-        pass
+def log(texto):
+    print(texto, flush=True)
 
-def get_smtp():
-    global _smtp_conn
-    with _smtp_lock:
-        if _smtp_conn is None:
-            s = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=30)
-            s.starttls()
-            s.login(EMAIL_REMETENTE, SENHA_REMETENTE)
-            _smtp_conn = s
-        return _smtp_conn
 
-def enviar_email_async(msg, log_id):
-    for tentativa in range(3):
-        try:
-            s = get_smtp()
-            with _smtp_lock:
-                s.send_message(msg)
-            log_envio(f"[{log_id}] OK: enviado com anexos")
-            return
-        except Exception as e:
-            global _smtp_conn
-            with _smtp_lock:
-                _smtp_conn = None
-            log_envio(f"[{log_id}] Falha tentativa {tentativa+1}: {e}")
-    log_envio(f"[{log_id}] FALHOU DEFINITIVO")
-
-@app.route("/submit", methods=["POST"])
-def submit():
-    nome = request.form.get("nome", "").strip()
-    email = request.form.get("email", "").strip()
-    telefone = request.form.get("telefone", "").strip()
-    assunto = request.form.get("assunto", "").strip()
-    mensagem = request.form.get("mensagem", "").strip()
-    arquivos = request.files.getlist("anexo")[:5]
-
-    if not nome or not email or not assunto:
-        return jsonify({"erro": "Preencha nome, email e assunto."}), 400
-    if not EMAIL_REMETENTE or not SENHA_REMETENTE:
-        return jsonify({"erro": "Servidor de email n\u00E3o configurado."}), 500
-
+def validar(pedido, arquivos):
+    for campo in ("nome", "email", "assunto", "mensagem"):
+        if not pedido.get(campo, "").strip():
+            return None, "Preencha todos os campos obrigatórios."
+    if len(arquivos) > MAX_FILES:
+        return None, f"Envie no máximo {MAX_FILES} anexos."
     total = 0
-    for f in arquivos:
-        if f.filename:
-            f.seek(0, os.SEEK_END)
-            tam = f.tell()
-            f.seek(0)
-            if tam > TAMANHO_MAX_ARQ:
-                return jsonify({"erro": f"O arquivo '{f.filename}' excede 8MB."}), 400
-            total += tam
-    if total > TAMANHO_MAX_TOTAL:
-        return jsonify({"erro": "Anexos excedem 20MB no total."}), 400
+    for arq in arquivos:
+        if not arq.filename:
+            continue
+        arq.stream.seek(0, os.SEEK_END)
+        tamanho = arq.stream.tell()
+        arq.stream.seek(0)
+        if tamanho > MAX_FILE_MB * 1024 * 1024:
+            return None, f"O arquivo '{arq.filename}' excede {MAX_FILE_MB}MB."
+        total += tamanho
+    if total > MAX_TOTAL_MB * 1024 * 1024:
+        return None, f"Anexos excedem {MAX_TOTAL_MB}MB no total."
+    return True, None
 
-    corpo = f"""Nova solicita\u00E7\u00E3o do site SEGMAF
+
+def montar_email(pedido):
+    nome = pedido.get("nome", "").strip()
+    email = pedido.get("email", "").strip()
+    telefone = pedido.get("telefone", "").strip()
+    assunto = pedido.get("assunto", "").strip()
+    mensagem = pedido.get("mensagem", "").strip()
+
+    texto = f"""Nova solicitação de orçamento recebida pelo site SEGMAF
 
 Nome: {nome}
 E-mail: {email}
-Telefone: {telefone}
+Telefone: {telefone or "não informado"}
 Assunto: {assunto}
 
 Mensagem:
 {mensagem}
 """
 
+    html = f"""<html><body style="font-family:Arial,sans-serif;color:#0A2540">
+<h2 style="color:#0A2540;border-bottom:3px solid #F26522;padding-bottom:8px">Nova solicitação de orçamento</h2>
+<table style="border-collapse:collapse" cellpadding="6">
+<tr><td style="font-weight:bold">Nome</td><td>{nome}</td></tr>
+<tr><td style="font-weight:bold">E-mail</td><td>{email}</td></tr>
+<tr><td style="font-weight:bold">Telefone</td><td>{telefone or "não informado"}</td></tr>
+<tr><td style="font-weight:bold">Assunto</td><td>{assunto}</td></tr>
+</table>
+<p style="font-weight:bold;margin-top:12px">Mensagem:</p>
+<p>{mensagem.replace(chr(10), "<br>")}</p>
+<hr>
+<p style="color:#777;font-size:12px">Enviado automaticamente pelo site segmaf.com.br</p>
+</body></html>"""
+
     msg = EmailMessage()
-    msg["From"] = EMAIL_REMETENTE
-    msg["To"] = EMAIL_DESTINO
+    msg["From"] = formataddr(("Site SEGMAF", EMAIL_FROM))
+    msg["To"] = EMAIL_TO
     msg["Subject"] = f"[SEGMAF Site] {assunto} - {nome}"
-    msg.set_content(corpo)
+    msg.set_content(texto)
+    msg.add_alternative(html, subtype="html")
+    return msg
 
-    for f in arquivos:
-        if f.filename:
-            dados = f.read()
-            msg.add_attachment(dados, maintype="application", subtype="octet-stream", filename=f.filename)
 
-    log_id = uuid.uuid4().hex[:8]
-    threading.Thread(target=enviar_email_async, args=(msg, log_id), daemon=True).start()
-    return jsonify({"ok": True, "mensagem": "Recebemos sua solicita\u00E7\u00E3o!"}), 200
+def processar(pedido, arquivos):
+    ok, erro = validar(pedido, arquivos)
+    if not ok:
+        return jsonify({"success": False, "message": erro}), 400
+    if not SMTP_USER or not SMTP_PASS:
+        return jsonify({"success": False, "message": "Servidor de e-mail não configurado."}), 500
+
+    msg = montar_email(pedido)
+    for arq in arquivos:
+        if arq.filename:
+            nome = os.path.basename(arq.filename)
+            msg.add_attachment(arq.read(), maintype="application", subtype="octet-stream", filename=nome)
+
+    try:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as smtp:
+            smtp.starttls()
+            smtp.login(SMTP_USER, SMTP_PASS)
+            smtp.send_message(msg)
+        log(f"E-mail enviado para {EMAIL_TO} - assunto: {msg['Subject']}")
+        return jsonify({"success": True, "message": "Recebemos sua solicitação! Entraremos em contato em breve."}), 200
+    except Exception as e:
+        log(f"ERRO ao enviar e-mail: {e}")
+        return jsonify({"success": False, "message": "Erro ao enviar sua solicitação. Tente novamente em instantes."}), 500
+
+
+@app.route("/", methods=["GET"])
+def health():
+    return jsonify({"status": "ok", "servico": "SEGMAF API"}), 200
+
+
+@app.route("/api/orcamento", methods=["POST"])
+def api_orcamento():
+    return processar(request.form, request.files.getlist("anexo"))
+
+
+@app.route("/submit", methods=["POST"])
+def submit():
+    return api_orcamento()
+
 
 if __name__ == "__main__":
-    print("Servidor SEGMAF rodando em http://localhost:5000")
+    print("API SEGMAF rodando em http://localhost:5000")
     app.run(host="0.0.0.0", port=5000, debug=False, threaded=True)

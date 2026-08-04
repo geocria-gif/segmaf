@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: segmaf-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn server:app
+    envVars:
+      - key: SMTP_HOST
+        value: smtp.office365.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        value: segmaf@outlook.com
+      - key: EMAIL_FROM
+        value: segmaf@outlook.com
+      - key: EMAIL_TO
+        value: segmaf@outlook.com
+      - key: ALLOWED_ORIGINS
+        value: https://segmaf.com.br
+      - key: SMTP_PASS
+        sync: false

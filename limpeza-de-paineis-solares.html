@@ -711,7 +711,7 @@ window.addEventListener('scroll',()=>{document.getElementById('navbar').classLis
 const toTop=document.getElementById('toTop');
 window.addEventListener('scroll',()=>{toTop.classList.toggle('show',window.scrollY>600)});
 toTop.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
-const FORM_ENDPOINT='https://formsubmit.co/ajax/segmaf@outlook.com';
+const FORM_ENDPOINT='https://segmaf-api.onrender.com/api/orcamento';
 const MAX_FILES=5;
 const fileInput=document.getElementById('fileInput');
 const fileInfo=document.getElementById('fileInfo');
@@ -727,9 +727,6 @@ if(form){form.addEventListener('submit',async function(e){
   const btn=this.querySelector('button[type=submit]');
   const msg=document.getElementById('formMsg');
   const f=new FormData(this);
-  f.append('_subject','[SEGMAF Site] '+(f.get('assunto')||'Solicitação')+' - '+(f.get('nome')||''));
-  f.append('_captcha','false');
-  f.append('_honey','');
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Enviando...';
   msg.className='';msg.style.display='none';
   try{
