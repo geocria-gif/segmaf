@@ -102,12 +102,20 @@ def processar(pedido, arquivos):
             msg.add_attachment(arq.read(), maintype="application", subtype="octet-stream", filename=nome)
 
     try:
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as smtp:
-            smtp.starttls()
-            smtp.login(SMTP_USER, SMTP_PASS)
-            smtp.send_message(msg)
-        log(f"E-mail enviado para {EMAIL_TO} - assunto: {msg['Subject']}")
-        return jsonify({"success": True, "message": "Recebemos sua solicitação! Entraremos em contato em breve."}), 200
+        portas = list(dict.fromkeys([SMTP_PORT, 2525]))
+        ultimo_erro = None
+        for porta in portas:
+            try:
+                with smtplib.SMTP(SMTP_HOST, porta, timeout=15) as smtp:
+                    smtp.starttls()
+                    smtp.login(SMTP_USER, SMTP_PASS)
+                    smtp.send_message(msg)
+                log(f"E-mail enviado para {EMAIL_TO} via {SMTP_HOST}:{porta} - assunto: {msg['Subject']}")
+                return jsonify({"success": True, "message": "Recebemos sua solicitação! Entraremos em contato em breve."}), 200
+            except Exception as e:
+                ultimo_erro = e
+                log(f"Falha via {SMTP_HOST}:{porta}: {e!r}")
+        raise ultimo_erro
     except Exception as e:
         log(f"ERRO ao enviar e-mail: {e!r}")
         return jsonify({"success": False, "message": "Erro ao enviar sua solicitação. Tente novamente em instantes."}), 500
