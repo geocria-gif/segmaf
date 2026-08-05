@@ -113,6 +113,19 @@ def processar(pedido, arquivos):
         return jsonify({"success": False, "message": "Erro ao enviar sua solicitação. Tente novamente em instantes."}), 500
 
 
+@app.route("/_diag", methods=["GET"])
+def diag():
+    return jsonify({
+        "smtp_host": SMTP_HOST,
+        "smtp_port": SMTP_PORT,
+        "smtp_user": SMTP_USER,
+        "smtp_user_set": bool(SMTP_USER),
+        "smtp_pass_set": bool(SMTP_PASS),
+        "email_from": EMAIL_FROM,
+        "email_to": EMAIL_TO,
+    }), 200
+
+
 @app.route("/", methods=["GET"])
 def health():
     return jsonify({"status": "ok", "servico": "SEGMAF API", "build": "diagnostico-2"}), 200
