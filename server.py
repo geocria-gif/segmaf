@@ -115,34 +115,26 @@ def processar(pedido, arquivos):
 
 @app.route("/_diag", methods=["GET"])
 def diag():
+    import socket
     import time
-    smtp = smtplib.SMTP(timeout=8)
-    smtp.set_debuglevel(0)
-    resultado = {"conectado": False, "passos": []}
-    try:
+    candidatos = [
+        ("smtp-relay.brevo.com", 587),
+        ("smtp-relay.brevo.com", 2525),
+        ("smtp-relay.brevo.com", 465),
+        ("smtp.office365.com", 587),
+        ("auth.smtp2go.com", 587),
+        ("auth.smtp2go.com", 2525),
+        ("smtp.mailersend.net", 587),
+    ]
+    sondas = []
+    for host, porta in candidatos:
         t0 = time.time()
-        smtp.connect(SMTP_HOST, SMTP_PORT)
-        resultado["passos"].append({"passo": "connect", "ok": True, "ms": int((time.time() - t0) * 1000)})
-        t0 = time.time()
-        smtp.ehlo()
-        resultado["passos"].append({"passo": "ehlo", "ok": True, "ms": int((time.time() - t0) * 1000)})
-        if smtp.has_extn("starttls"):
-            t0 = time.time()
-            smtp.starttls()
-            resultado["passos"].append({"passo": "starttls", "ok": True, "ms": int((time.time() - t0) * 1000)})
-            smtp.ehlo()
-        if SMTP_USER and SMTP_PASS:
-            t0 = time.time()
-            smtp.login(SMTP_USER, SMTP_PASS)
-            resultado["passos"].append({"passo": "login", "ok": True, "ms": int((time.time() - t0) * 1000)})
-        resultado["conectado"] = True
-    except Exception as e:
-        resultado["erro"] = f"{type(e).__name__}: {e}"
-    finally:
         try:
-            smtp.quit()
-        except Exception:
-            pass
+            s = socket.create_connection((host, porta), timeout=5)
+            s.close()
+            sondas.append({"host": host, "porta": porta, "ok": True, "ms": int((time.time() - t0) * 1000)})
+        except Exception as e:
+            sondas.append({"host": host, "porta": porta, "ok": False, "erro": type(e).__name__})
     return jsonify({
         "smtp_host": SMTP_HOST,
         "smtp_port": SMTP_PORT,
@@ -151,7 +143,7 @@ def diag():
         "smtp_pass_set": bool(SMTP_PASS),
         "email_from": EMAIL_FROM,
         "email_to": EMAIL_TO,
-        "teste_conexao": resultado,
+        "sondas": sondas,
     }), 200
 
 
