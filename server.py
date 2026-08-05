@@ -115,6 +115,34 @@ def processar(pedido, arquivos):
 
 @app.route("/_diag", methods=["GET"])
 def diag():
+    import time
+    smtp = smtplib.SMTP(timeout=8)
+    smtp.set_debuglevel(0)
+    resultado = {"conectado": False, "passos": []}
+    try:
+        t0 = time.time()
+        smtp.connect(SMTP_HOST, SMTP_PORT)
+        resultado["passos"].append({"passo": "connect", "ok": True, "ms": int((time.time() - t0) * 1000)})
+        t0 = time.time()
+        smtp.ehlo()
+        resultado["passos"].append({"passo": "ehlo", "ok": True, "ms": int((time.time() - t0) * 1000)})
+        if smtp.has_extn("starttls"):
+            t0 = time.time()
+            smtp.starttls()
+            resultado["passos"].append({"passo": "starttls", "ok": True, "ms": int((time.time() - t0) * 1000)})
+            smtp.ehlo()
+        if SMTP_USER and SMTP_PASS:
+            t0 = time.time()
+            smtp.login(SMTP_USER, SMTP_PASS)
+            resultado["passos"].append({"passo": "login", "ok": True, "ms": int((time.time() - t0) * 1000)})
+        resultado["conectado"] = True
+    except Exception as e:
+        resultado["erro"] = f"{type(e).__name__}: {e}"
+    finally:
+        try:
+            smtp.quit()
+        except Exception:
+            pass
     return jsonify({
         "smtp_host": SMTP_HOST,
         "smtp_port": SMTP_PORT,
@@ -123,6 +151,7 @@ def diag():
         "smtp_pass_set": bool(SMTP_PASS),
         "email_from": EMAIL_FROM,
         "email_to": EMAIL_TO,
+        "teste_conexao": resultado,
     }), 200
 
 
