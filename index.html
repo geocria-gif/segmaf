@@ -879,6 +879,10 @@ footer{
         <input type="text" name="nome" placeholder="Nome" required />
         <input type="email" name="email" placeholder="E-mail" required />
         <input type="tel" name="telefone" placeholder="Telefone" />
+        <input type="text" name="cidade" placeholder="Cidade" />
+        <input type="text" name="endereco" placeholder="Endereço" />
+        <input type="text" name="latitude" placeholder="Latitude (opcional)" />
+        <input type="text" name="longitude" placeholder="Longitude (opcional)" />
         <select name="assunto" required>
           <option value="" disabled selected>Selecione o assunto</option>
           <option value="Capina Quimica em Usinas Solares">Capina Química em Usinas Solares</option>
@@ -889,8 +893,6 @@ footer{
           <option value="Pulverizacao em Areas Irrigadas">Pulverização em Áreas Irrigadas</option>
           <option value="Outros">Outros</option>
         </select>
-        <input type="file" name="anexo" accept="image/*,.pdf" multiple id="fileInput" />
-        <div class="file-info" id="fileInfo">Nenhum arquivo selecionado</div>
         <textarea name="mensagem" placeholder="Descreva seu serviço ou solicitação..." required></textarea>
         <div id="formMsg"></div>
         <button type="submit" class="btn btn-primary" style="align-self:flex-start">
@@ -947,8 +949,6 @@ footer{
 </footer>
 
 <script>
-const MAX_FILES = 5;
-
 // Mobile nav toggle
 const toggle = document.getElementById('navToggle');
 const links = document.getElementById('navLinks');
@@ -969,20 +969,6 @@ const observer=new IntersectionObserver((entries)=>{
 },{threshold:.1});
 document.querySelectorAll('.fade-up').forEach(el=>observer.observe(el));
 
-// File input - count and limit to 5
-const fileInput=document.getElementById('fileInput');
-const fileInfo=document.getElementById('fileInfo');
-fileInput.addEventListener('change',function(){
-  const files=Array.from(this.files);
-  if(files.length>MAX_FILES){
-    const kept=files.slice(0,MAX_FILES);
-    const dt=new DataTransfer();
-    kept.forEach(f=>dt.items.add(f));
-    this.files=dt.files;
-  }
-  const n=this.files.length;
-  fileInfo.textContent=n===0?'Nenhum arquivo selecionado':n+' arquivo'+(n>1?'s':'')+' selecionado'+(n>1?'s':'')+' (max '+MAX_FILES+')';
-});
 
 // Hero screen - slides + nomes + dots sincronizados
 const slides=document.querySelectorAll('.slide');
@@ -1016,7 +1002,7 @@ document.getElementById('contactForm').addEventListener('submit',async function(
     const data=await res.json();
     if(data.success){
       msg.className='success';msg.textContent='Recebemos sua solicita\u00E7\u00E3o! Entraremos em contato em breve.';
-      this.reset();fileInfo.textContent='Nenhum arquivo selecionado';
+      this.reset();
     }else{
       msg.className='error';msg.textContent=data.message||'Erro ao enviar. Tente novamente.';
     }
@@ -1046,6 +1032,26 @@ if(mapaEl && typeof L!=='undefined'){
     .openPopup();
   mapa.fitBounds(area.getBounds(),{padding:[40,40]});
   mapaEl.addEventListener('click',()=>mapa.scrollWheelZoom.enable());
+  let marcadorLocal=null;
+  mapa.on('click',async function(ev){
+    const lat=ev.latlng.lat.toFixed(6);
+    const lng=ev.latlng.lng.toFixed(6);
+    const latInput=document.getElementById('latitude');
+    const lngInput=document.getElementById('longitude');
+    if(!latInput||!lngInput){return;}
+    if(marcadorLocal){marcadorLocal.setLatLng(ev.latlng);}else{marcadorLocal=L.marker(ev.latlng).addTo(mapa);}
+    latInput.value=lat;
+    lngInput.value=lng;
+    try{
+      const res=await fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lng+'&format=jsonv2&accept-language=pt-BR&zoom=14',{headers:{'Accept-Language':'pt-BR'}});
+      const d=await res.json();
+      const addr=d.address||{};
+      const cidade=addr.city||addr.town||addr.village||addr.municipality||addr.county||addr.state||'';
+      const endereco=[addr.road,addr.house_number].filter(Boolean).join(', ');
+      document.getElementById('cidade').value=cidade;
+      document.getElementById('endereco').value=endereco;
+    }catch(err){}
+  });
 }
 </script>
 </body>

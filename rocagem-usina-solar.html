@@ -627,6 +627,10 @@ footer{
         <input type="text" name="nome" placeholder="Nome" required />
         <input type="email" name="email" placeholder="E-mail" required />
         <input type="tel" name="telefone" placeholder="Telefone" />
+        <input type="text" name="cidade" placeholder="Cidade" />
+        <input type="text" name="endereco" placeholder="Endereço" />
+        <input type="text" name="latitude" placeholder="Latitude (opcional)" />
+        <input type="text" name="longitude" placeholder="Longitude (opcional)" />
         <select name="assunto" required>
           <option value="" disabled selected>Selecione o assunto</option>
           <option value="Orcamento">Orçamento</option>
@@ -638,10 +642,6 @@ footer{
           <option value="Duvidas">Dúvidas</option>
         </select>
         <textarea name="mensagem" placeholder="Mensagem" required></textarea>
-        <label class="file-label">Anexos (máx. 5)
-          <input type="file" name="anexo" accept="image/*,.pdf" multiple id="fileInput" />
-          <div class="file-info" id="fileInfo">Nenhum arquivo selecionado</div>
-        </label>
         <button type="submit" class="btn btn-primary">Enviar Solicitação</button>
         <div id="formMsg" style="display:none"></div>
       </form>
@@ -704,15 +704,6 @@ const toTop=document.getElementById('toTop');
 window.addEventListener('scroll',()=>{toTop.classList.toggle('show',window.scrollY>600)});
 toTop.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
 const FORM_ENDPOINT='https://segmaf-api.onrender.com/api/orcamento';
-const MAX_FILES=5;
-const fileInput=document.getElementById('fileInput');
-const fileInfo=document.getElementById('fileInfo');
-if(fileInput){fileInput.addEventListener('change',function(){
-  const files=Array.from(this.files);
-  if(files.length>MAX_FILES){const kept=files.slice(0,MAX_FILES);const dt=new DataTransfer();kept.forEach(f=>dt.items.add(f));this.files=dt.files;}
-  const n=this.files.length;
-  fileInfo.textContent=n===0?'Nenhum arquivo selecionado':n+' arquivo'+(n>1?'s':'')+' selecionado'+(n>1?'s':'')+' (max '+MAX_FILES+')';
-});}
 const form=document.getElementById('contactForm');
 if(form){form.addEventListener('submit',async function(e){
   e.preventDefault();
@@ -724,7 +715,7 @@ if(form){form.addEventListener('submit',async function(e){
   try{
     const res=await fetch(FORM_ENDPOINT,{method:'POST',body:f});
     const data=await res.json();
-    if(data.success){msg.className='success';msg.textContent='Recebemos sua solicitação! Entraremos em contato em breve.';this.reset();if(fileInfo)fileInfo.textContent='Nenhum arquivo selecionado';}
+    if(data.success){msg.className='success';msg.textContent='Recebemos sua solicitação! Entraremos em contato em breve.';this.reset();}
     else{msg.className='error';msg.textContent=data.message||'Erro ao enviar. Tente novamente.';}
   }catch{msg.className='error';msg.textContent='Erro ao enviar. Verifique sua conexão e tente novamente.';}
   msg.style.display='block';

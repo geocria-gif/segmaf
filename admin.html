@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Painel Administrativo — SEGMAF</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#f4f6f9;color:#0A2540;min-height:100vh}
+header{background:#0A2540;color:#fff;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+header h1{font-size:1.15rem;font-weight:600}
+header a{color:#fff;text-decoration:none;font-size:.9rem;border:1px solid rgba(255,255,255,.5);padding:6px 12px;border-radius:6px}
+main{max-width:1100px;margin:0 auto;padding:24px}
+.card{background:#fff;border:1px solid #e3e8ef;border-radius:10px;padding:24px;box-shadow:0 1px 3px rgba(10,37,64,.06)}
+.hidden{display:none}
+label{display:block;font-size:.85rem;font-weight:600;margin-bottom:6px}
+input[type=password]{width:100%;max-width:360px;padding:10px 12px;border:1px solid #c9d3df;border-radius:8px;font-size:1rem}
+button{cursor:pointer;border:none;border-radius:8px;font-weight:600}
+.btn-primary{background:#F26522;color:#fff;padding:10px 22px;font-size:.95rem}
+.btn-primary:hover{background:#d8540f}
+.btn-danger{background:#dc2626;color:#fff;padding:6px 12px;font-size:.8rem}
+.btn-outline{background:#fff;color:#0A2540;border:1px solid #c9d3df;padding:8px 16px;font-size:.85rem}
+.btn-outline:hover{background:#eef2f7}
+.topo-acoes{display:flex;gap:10px;align-items:center;margin:18px 0;flex-wrap:wrap}
+.mensagem{margin-top:12px;font-size:.9rem}
+.mensagem.erro{color:#dc2626}
+.mensagem.ok{color:#15803d}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid #e9edf3;vertical-align:top}
+th{background:#0A2540;color:#fff;font-weight:600;white-space:nowrap}
+tr:hover td{background:#f7fafc}
+td.nome{font-weight:600}
+.det-tags{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0}
+.tag{background:#eef2f7;color:#0A2540;border-radius:20px;padding:2px 10px;font-size:.75rem}
+.tag.assunto{background:#fde8db;color:#b0450e}
+.mensagem-texto{max-width:340px;white-space:pre-wrap;color:#475569}
+.badge-total{background:#F26522;color:#fff;border-radius:20px;padding:2px 10px;font-size:.8rem}
+.centro{max-width:420px;margin:10vh auto}
+.rodape{text-align:center;font-size:.75rem;color:#94a3b8;margin:32px 0}
+.vazio{color:#64748b;text-align:center;padding:32px;font-size:.9rem}
+.acoes-linha{display:flex;gap:8px;justify-content:flex-end}
+@media(max-width:700px){
+  table{font-size:.78rem}
+  th,td{padding:8px}
+  .mensagem-texto{max-width:220px}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>&#128273; Painel Administrativo — SEGMAF</h1>
+  <a href="index.html">&#8592; Ver site</a>
+</header>
+
+<main>
+  <div id="telaLogin" class="card centro">
+    <h2 style="font-size:1.1rem;margin-bottom:16px">Entrar no painel</h2>
+    <label for="campoSenha">Senha de acesso</label>
+    <input type="password" id="campoSenha" placeholder="Digite a senha" autocomplete="current-password" />
+    <div class="mensagem" id="msgLogin"></div>
+    <div style="margin-top:16px">
+      <button class="btn-primary" id="btnEntrar" style="width:100%">Entrar</button>
+    </div>
+  </div>
+
+  <div id="telaPainel" class="hidden">
+    <div class="card" style="padding:16px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <div style="font-size:1rem;font-weight:600">
+        Solicita&ccedil;&otilde;es de or&ccedil;amento <span class="badge-total" id="totalBadge">0</span>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn-outline" id="btnAtualizar">&#8635; Atualizar</button>
+        <button class="btn-outline" id="btnExportar">&#11015; Exportar CSV</button>
+        <button class="btn-outline" id="btnSair">Sair</button>
+      </div>
+    </div>
+    <div class="mensagem hidden" id="msgPainel"></div>
+    <div class="card" style="margin-top:16px;overflow-x:auto">
+      <div id="tabela"></div>
+    </div>
+  </div>
+</main>
+
+<p class="rodape">SEGMAF Solu&ccedil;&otilde;es em Limpeza LTDA &mdash; CNPJ 54.851.014/0001-48</p>
+
+<script>
+const API = 'https://segmaf-api.onrender.com';
+const salvar = 'segmaf_admin_token';
+let token = localStorage.getItem(salvar) || '';
+
+const telaLogin = document.getElementById('telaLogin');
+const telaPainel = document.getElementById('telaPainel');
+const campoSenha = document.getElementById('campoSenha');
+const msgLogin = document.getElementById('msgLogin');
+const msgPainel = document.getElementById('msgPainel');
+
+function mostrarPainel(){
+  telaLogin.classList.add('hidden');
+  telaPainel.classList.remove('hidden');
+}
+function mostrarLogin(){
+  telaPainel.classList.add('hidden');
+  telaLogin.classList.remove('hidden');
+}
+
+async function carregar(){
+  msgPainel.classList.add('hidden');
+  try{
+    const res = await fetch(API + '/api/admin/solicitacoes', {headers:{'Authorization':'Bearer ' + token}});
+    const data = await res.json();
+    if(!data.success){
+      if(res.status === 401){ localStorage.removeItem(salvar); token=''; mostrarLogin(); msgLogin.textContent='Senha incorreta.'; msgLogin.className='mensagem erro'; }
+      else{ msgPainel.textContent = data.message || 'Erro ao carregar.'; msgPainel.classList.remove('hidden'); msgPainel.className='mensagem erro'; }
+      return;
+    }
+    renderizar(data.solicitacoes, data.total);
+  }catch(e){
+    msgPainel.textContent = 'Falha de conexão com a API. Verifique se o serviço está no ar.';
+    msgPainel.classList.remove('hidden'); msgPainel.className='mensagem erro';
+  }
+}
+
+function fmtData(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  const p = n => String(n).padStart(2,'0');
+  return p(d.getDate()) + '/' + p(d.getMonth()+1) + '/' + d.getFullYear() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+
+function renderizar(itens, total){
+  document.getElementById('totalBadge').textContent = total;
+  const tabela = document.getElementById('tabela');
+  if(!itens.length){
+    tabela.innerHTML = '<div class="vazio">Nenhuma solicitação recebida ainda.</div>';
+    return;
+  }
+  const linhas = itens.map(s => `
+    <tr>
+      <td class="nome">${esc(s.nome)}</td>
+      <td>${esc(s.email)}<br/><span class="tag">${esc(s.telefone || 'sem telefone')}</span></td>
+      <td>${esc(s.assunto)}<br/><small>${fmtData(s.criado_em)}</small></td>
+      <td><span class="tag">${esc(s.cidade || '—')}</span><br/><small>${esc(s.endereco || '')}</small>
+        ${s.latitude ? `<br/><small>${s.latitude}, ${s.longitude}</small>` : ''}</td>
+      <td class="mensagem-texto">${esc(s.mensagem)}</td>
+      <td><div class="acoes-linha">
+        <button class="btn-outline" onclick="abrirWhats('https://wa.me/55${String(s.telefone||'').replace(/\D/g,'')}')">Whats</button>
+        <button class="btn-danger" onclick="excluir(${s.id})">Excluir</button>
+      </div></td>
+    </tr>`).join('');
+  tabela.innerHTML = '<table><thead><tr><th>Nome</th><th>Contato</th><th>Assunto</th><th>Localização</th><th>Mensagem</th><th>Ações</th></tr></thead><tbody>' + linhas + '</tbody></table>';
+}
+
+function esc(t){ return String(t == null ? '' : t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function abrirWhats(url){
+  if(url === 'https://wa.me/55'){ alert('Sem telefone informado.'); return; }
+  window.open(url, '_blank');
+}
+
+async function excluir(id){
+  if(!confirm('Excluir esta solicitação?')) return;
+  const res = await fetch(API + '/api/admin/solicitacoes/' + id, {method:'DELETE', headers:{'Authorization':'Bearer ' + token}});
+  const data = await res.json();
+  if(data.success){ carregar(); }
+  else{ alert(data.message || 'Erro ao excluir.'); }
+}
+
+function exportarCSV(itens){
+  const cab = 'id;criado_em;nome;email;telefone;cidade;endereco;latitude;longitude;assunto;mensagem';
+  const linhas = itens.map(s =>
+    [s.id, s.criado_em, s.nome, s.email, s.telefone, s.cidade, s.endereco, s.latitude, s.longitude, s.assunto, s.mensagem]
+      .map(v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(';')
+  );
+  const blob = new Blob(['\ufeff' + [cab, ...linhas].join('\r\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'solicitacoes-segmaf.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+document.getElementById('btnEntrar').addEventListener('click', async () => {
+  const senha = campoSenha.value.trim();
+  if(!senha){ msgLogin.textContent = 'Digite a senha.'; msgLogin.className='mensagem erro'; return; }
+  msgLogin.textContent = 'Verificando...'; msgLogin.className='mensagem';
+  try{
+    const res = await fetch(API + '/api/admin/solicitacoes', {headers:{'Authorization':'Bearer ' + senha}});
+    const data = await res.json();
+    if(data.success){
+      token = senha;
+      localStorage.setItem(salvar, token);
+      mostrarPainel(); carregar();
+    }else{
+      msgLogin.textContent = 'Senha incorreta.'; msgLogin.className='mensagem erro';
+    }
+  }catch(e){
+    msgLogin.textContent = 'Falha de conexão com a API.'; msgLogin.className='mensagem erro';
+  }
+});
+campoSenha.addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('btnEntrar').click(); });
+document.getElementById('btnAtualizar').addEventListener('click', carregar);
+document.getElementById('btnSair').addEventListener('click', () => { localStorage.removeItem(salvar); token=''; mostrarLogin(); });
+document.getElementById('btnExportar').addEventListener('click', async () => {
+  const res = await fetch(API + '/api/admin/solicitacoes', {headers:{'Authorization':'Bearer ' + token}});
+  const data = await res.json();
+  if(data.success){ exportarCSV(data.solicitacoes); }
+});
+
+if(token){
+  mostrarPainel();
+  carregar();
+}
+</script>
+</body>
+</html>

@@ -1,107 +1,88 @@
 import os
 import smtplib
+import datetime
 from email.message import EmailMessage
 from email.utils import formataddr
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from sqlalchemy import create_engine, Column, Integer, String, Float, Text, DateTime
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 app = Flask(__name__)
 CORS(app, origins=[o.strip() for o in os.environ.get("ALLOWED_ORIGINS", "*").split(",") if o.strip()])
 app.config["MAX_CONTENT_LENGTH"] = int(os.environ.get("MAX_TOTAL_MB", "25")) * 1024 * 1024
 
-SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.office365.com")
+# --- Banco de dados ------------------------------------------------------
+DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
+if not DATABASE_URL:
+    DATABASE_URL = "sqlite:///solicitacoes.db"
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgres://"):]
+
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+Base = declarative_base()
+
+
+class Solicitacao(Base):
+    __tablename__ = "solicitacoes"
+    id = Column(Integer, primary_key=True)
+    criado_em = Column(DateTime, default=datetime.datetime.utcnow)
+    nome = Column(String(120))
+    email = Column(String(120))
+    telefone = Column(String(40))
+    cidade = Column(String(120))
+    endereco = Column(String(255))
+    latitude = Column(Float)
+    longitude = Column(Float)
+    assunto = Column(String(120))
+    mensagem = Column(Text)
+
+
+Base.metadata.create_all(engine)
+Session = sessionmaker(bind=engine)
+
+# --- Configuracoes --------------------------------------------------------
+ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "").strip()
+
+SMTP_HOST = os.environ.get("SMTP_HOST", "smtp-relay.brevo.com")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
 SMTP_USER = os.environ.get("SMTP_USER", "")
 SMTP_PASS = os.environ.get("SMTP_PASS", "")
 EMAIL_FROM = os.environ.get("EMAIL_FROM", SMTP_USER) or SMTP_USER
 EMAIL_TO = os.environ.get("EMAIL_TO", "segmaf@outlook.com")
 
-MAX_FILES = int(os.environ.get("MAX_FILES", "5"))
-MAX_FILE_MB = int(os.environ.get("MAX_FILE_MB", "8"))
-MAX_TOTAL_MB = int(os.environ.get("MAX_TOTAL_MB", "20"))
-
 
 def log(texto):
     print(texto, flush=True)
 
 
-def validar(pedido, arquivos):
-    for campo in ("nome", "email", "assunto", "mensagem"):
-        if not pedido.get(campo, "").strip():
-            return None, "Preencha todos os campos obrigatórios."
-    if len(arquivos) > MAX_FILES:
-        return None, f"Envie no máximo {MAX_FILES} anexos."
-    total = 0
-    for arq in arquivos:
-        if not arq.filename:
-            continue
-        arq.stream.seek(0, os.SEEK_END)
-        tamanho = arq.stream.tell()
-        arq.stream.seek(0)
-        if tamanho > MAX_FILE_MB * 1024 * 1024:
-            return None, f"O arquivo '{arq.filename}' excede {MAX_FILE_MB}MB."
-        total += tamanho
-    if total > MAX_TOTAL_MB * 1024 * 1024:
-        return None, f"Anexos excedem {MAX_TOTAL_MB}MB no total."
-    return True, None
-
-
-def montar_email(pedido):
-    nome = pedido.get("nome", "").strip()
-    email = pedido.get("email", "").strip()
-    telefone = pedido.get("telefone", "").strip()
-    assunto = pedido.get("assunto", "").strip()
-    mensagem = pedido.get("mensagem", "").strip()
-
-    texto = f"""Nova solicitação de orçamento recebida pelo site SEGMAF
-
-Nome: {nome}
-E-mail: {email}
-Telefone: {telefone or "não informado"}
-Assunto: {assunto}
-
-Mensagem:
-{mensagem}
-"""
-
-    html = f"""<html><body style="font-family:Arial,sans-serif;color:#0A2540">
-<h2 style="color:#0A2540;border-bottom:3px solid #F26522;padding-bottom:8px">Nova solicitação de orçamento</h2>
-<table style="border-collapse:collapse" cellpadding="6">
-<tr><td style="font-weight:bold">Nome</td><td>{nome}</td></tr>
-<tr><td style="font-weight:bold">E-mail</td><td>{email}</td></tr>
-<tr><td style="font-weight:bold">Telefone</td><td>{telefone or "não informado"}</td></tr>
-<tr><td style="font-weight:bold">Assunto</td><td>{assunto}</td></tr>
-</table>
-<p style="font-weight:bold;margin-top:12px">Mensagem:</p>
-<p>{mensagem.replace(chr(10), "<br>")}</p>
-<hr>
-<p style="color:#777;font-size:12px">Enviado automaticamente pelo site segmaf.com.br</p>
-</body></html>"""
-
-    msg = EmailMessage()
-    msg["From"] = formataddr(("Site SEGMAF", EMAIL_FROM))
-    msg["To"] = EMAIL_TO
-    msg["Subject"] = f"[SEGMAF Site] {assunto} - {nome}"
-    msg.set_content(texto)
-    msg.add_alternative(html, subtype="html")
-    return msg
-
-
-def processar(pedido, arquivos):
-    ok, erro = validar(pedido, arquivos)
-    if not ok:
-        return jsonify({"success": False, "message": erro}), 400
-    if not SMTP_USER or not SMTP_PASS:
-        return jsonify({"success": False, "message": "Servidor de e-mail não configurado."}), 500
-
-    msg = montar_email(pedido)
-    for arq in arquivos:
-        if arq.filename:
-            nome = os.path.basename(arq.filename)
-            msg.add_attachment(arq.read(), maintype="application", subtype="octet-stream", filename=nome)
-
+def float_ou_nulo(valor):
+    if not valor:
+        return None
     try:
+        return float(valor)
+    except (TypeError, ValueError):
+        return None
+
+
+# --- SMTP opcional (nunca bloqueia a resposta) -----------------------------
+def enviar_email_async(dados):
+    try:
+        if not (SMTP_USER and SMTP_PASS):
+            return
+        msg = EmailMessage()
+        msg["From"] = formataddr(("Site SEGMAF", EMAIL_FROM))
+        msg["To"] = EMAIL_TO
+        msg["Subject"] = f"[SEGMAF Site] {dados['assunto']} - {dados['nome']}"
+        texto = (
+            f"Nova solicitação de orçamento\n\n"
+            f"Nome: {dados['nome']}\nE-mail: {dados['email']}\nTelefone: {dados['telefone'] or 'não informado'}\n"
+            f"Cidade: {dados['cidade'] or 'não informada'}\nEndereço: {dados['endereco'] or 'não informado'}\n"
+            f"Latitude: {dados['latitude'] or ''}  Longitude: {dados['longitude'] or ''}\n"
+            f"Assunto: {dados['assunto']}\n\nMensagem:\n{dados['mensagem']}"
+        )
+        msg.set_content(texto)
         portas = list(dict.fromkeys([SMTP_PORT, 2525]))
         ultimo_erro = None
         for porta in portas:
@@ -110,80 +91,120 @@ def processar(pedido, arquivos):
                     smtp.starttls()
                     smtp.login(SMTP_USER, SMTP_PASS)
                     smtp.send_message(msg)
-                log(f"E-mail enviado para {EMAIL_TO} via {SMTP_HOST}:{porta} - assunto: {msg['Subject']}")
-                return jsonify({"success": True, "message": "Recebemos sua solicitação! Entraremos em contato em breve."}), 200
+                log(f"E-mail enviado para {EMAIL_TO} via {SMTP_HOST}:{porta}")
+                return
             except Exception as e:
                 ultimo_erro = e
-                log(f"Falha via {SMTP_HOST}:{porta}: {e!r}")
-        raise ultimo_erro
+        log(f"ERRO SMTP (opcional): {ultimo_erro!r}")
     except Exception as e:
-        log(f"ERRO ao enviar e-mail: {e!r}")
-        return jsonify({"success": False, "message": "Erro ao enviar sua solicitação. Tente novamente em instantes."}), 500
+        log(f"ERRO SMTP (opcional): {e!r}")
 
 
-@app.route("/_diag", methods=["GET"])
-def diag():
-    import socket
-    import time
-    candidatos = [
-        ("smtp-relay.brevo.com", 587),
-        ("smtp-relay.brevo.com", 2525),
-        ("smtp-relay.brevo.com", 465),
-        ("smtp.office365.com", 587),
-        ("auth.smtp2go.com", 587),
-        ("auth.smtp2go.com", 2525),
-        ("smtp.mailersend.net", 587),
-    ]
-    sondas = []
-    for host, porta in candidatos:
-        t0 = time.time()
-        try:
-            s = socket.create_connection((host, porta), timeout=5)
-            s.close()
-            sondas.append({"host": host, "porta": porta, "ok": True, "ms": int((time.time() - t0) * 1000)})
-        except Exception as e:
-            sondas.append({"host": host, "porta": porta, "ok": False, "erro": type(e).__name__})
-
-    teste_login = {"erro": None, "ok": False}
-    if SMTP_USER and SMTP_PASS:
-        try:
-            with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as smtp:
-                smtp.starttls()
-                smtp.login(SMTP_USER, SMTP_PASS)
-                teste_login["ok"] = True
-        except Exception as e:
-            teste_login["erro"] = f"{type(e).__name__}: {e}"
-
-    return jsonify({
-        "smtp_host": SMTP_HOST,
-        "smtp_port": SMTP_PORT,
-        "smtp_user": SMTP_USER,
-        "smtp_user_set": bool(SMTP_USER),
-        "smtp_pass_set": bool(SMTP_PASS),
-        "email_from": EMAIL_FROM,
-        "email_to": EMAIL_TO,
-        "sondas": sondas,
-        "teste_login": teste_login,
-    }), 200
+# --- Autenticacao do admin --------------------------------------------------
+def autorizado():
+    if not ADMIN_TOKEN:
+        return False
+    cabecalho = request.headers.get("Authorization", "")
+    if cabecalho == f"Bearer {ADMIN_TOKEN}":
+        return True
+    return request.args.get("token") == ADMIN_TOKEN
 
 
+# --- Rotas -----------------------------------------------------------------
 @app.route("/", methods=["GET"])
 def health():
-    return jsonify({"status": "ok", "servico": "SEGMAF API", "build": "diagnostico-2"}), 200
+    return jsonify({"status": "ok", "servico": "SEGMAF API", "build": "db-v1"}), 200
 
 
 @app.route("/api/orcamento", methods=["POST"])
 def api_orcamento():
+    pedido = request.form
+    nome = (pedido.get("nome") or "").strip()
+    email = (pedido.get("email") or "").strip()
+    assunto = (pedido.get("assunto") or "").strip()
+    mensagem = (pedido.get("mensagem") or "").strip()
+    if not nome or not email or not assunto or not mensagem:
+        return jsonify({"success": False, "message": "Preencha todos os campos obrigatórios."}), 400
+
+    sol = Solicitacao(
+        nome=nome,
+        email=email,
+        telefone=(pedido.get("telefone") or "").strip(),
+        cidade=(pedido.get("cidade") or "").strip(),
+        endereco=(pedido.get("endereco") or "").strip(),
+        latitude=float_ou_nulo(pedido.get("latitude")),
+        longitude=float_ou_nulo(pedido.get("longitude")),
+        assunto=assunto,
+        mensagem=mensagem,
+    )
     try:
-        return processar(request.form, request.files.getlist("anexo"))
+        with Session.begin() as sess:
+            sess.add(sol)
+            sess.flush()
+            novo_id = sol.id
     except Exception as e:
-        log(f"ERRO nao tratado no /api/orcamento: {e!r}")
-        return jsonify({"success": False, "message": f"Erro interno do servidor: {e!r}"}), 500
+        log(f"ERRO ao salvar no banco: {e!r}")
+        return jsonify({"success": False, "message": "Erro ao salvar sua solicitação. Tente novamente."}), 500
+
+    log(f"Solicitação #{novo_id} salva: {nome} / {assunto}")
+    import threading
+    threading.Thread(
+        target=enviar_email_async,
+        args=({
+            "nome": nome,
+            "email": email,
+            "telefone": (pedido.get("telefone") or "").strip(),
+            "cidade": (pedido.get("cidade") or "").strip(),
+            "endereco": (pedido.get("endereco") or "").strip(),
+            "latitude": float_ou_nulo(pedido.get("latitude")),
+            "longitude": float_ou_nulo(pedido.get("longitude")),
+            "assunto": assunto,
+            "mensagem": mensagem,
+        },),
+        daemon=True,
+    ).start()
+    return jsonify({"success": True, "message": "Recebemos sua solicitação! Entraremos em contato em breve."}), 200
 
 
-@app.route("/submit", methods=["POST"])
-def submit():
-    return api_orcamento()
+@app.route("/api/admin/solicitacoes", methods=["GET"])
+def admin_solicitacoes():
+    if not autorizado():
+        return jsonify({"success": False, "message": "Não autorizado."}), 401
+    sess = Session()
+    try:
+        itens = sess.query(Solicitacao).order_by(Solicitacao.id.desc()).limit(500).all()
+        return jsonify({
+            "success": True,
+            "total": len(itens),
+            "solicitacoes": [{
+                "id": s.id,
+                "criado_em": s.criado_em.isoformat() if s.criado_em else None,
+                "nome": s.nome,
+                "email": s.email,
+                "telefone": s.telefone,
+                "cidade": s.cidade,
+                "endereco": s.endereco,
+                "latitude": s.latitude,
+                "longitude": s.longitude,
+                "assunto": s.assunto,
+                "mensagem": s.mensagem,
+            } for s in itens]
+        }), 200
+    finally:
+        sess.close()
+
+
+@app.route("/api/admin/solicitacoes/<int:sid>", methods=["DELETE"])
+def admin_excluir(sid):
+    if not autorizado():
+        return jsonify({"success": False, "message": "Não autorizado."}), 401
+    with Session.begin() as sess:
+        sol = sess.get(Solicitacao, sid)
+        if not sol:
+            return jsonify({"success": False, "message": "Solicitação não encontrada."}), 404
+        sess.delete(sol)
+    log(f"Solicitação #{sid} excluída")
+    return jsonify({"success": True}), 200
 
 
 if __name__ == "__main__":

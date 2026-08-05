@@ -20,3 +20,7 @@ services:
         value: https://segmaf.com.br
       - key: SMTP_PASS
         sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: ADMIN_TOKEN
+        sync: false
