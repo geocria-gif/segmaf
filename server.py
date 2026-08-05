@@ -143,6 +143,17 @@ def diag():
             sondas.append({"host": host, "porta": porta, "ok": True, "ms": int((time.time() - t0) * 1000)})
         except Exception as e:
             sondas.append({"host": host, "porta": porta, "ok": False, "erro": type(e).__name__})
+
+    teste_login = {"erro": None, "ok": False}
+    if SMTP_USER and SMTP_PASS:
+        try:
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as smtp:
+                smtp.starttls()
+                smtp.login(SMTP_USER, SMTP_PASS)
+                teste_login["ok"] = True
+        except Exception as e:
+            teste_login["erro"] = f"{type(e).__name__}: {e}"
+
     return jsonify({
         "smtp_host": SMTP_HOST,
         "smtp_port": SMTP_PORT,
@@ -152,6 +163,7 @@ def diag():
         "email_from": EMAIL_FROM,
         "email_to": EMAIL_TO,
         "sondas": sondas,
+        "teste_login": teste_login,
     }), 200
 
 
