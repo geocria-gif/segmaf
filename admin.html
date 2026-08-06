@@ -71,6 +71,7 @@ td.nome{font-weight:600}
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn-outline" id="btnAtualizar">&#8635; Atualizar</button>
+        <button class="btn-outline" id="btnAjustar">&#9998; Ajustar Atendidos</button>
         <button class="btn-outline" id="btnExportar">&#11015; Exportar CSV</button>
         <button class="btn-outline" id="btnSair">Sair</button>
       </div>
@@ -229,6 +230,20 @@ document.getElementById('btnEntrar').addEventListener('click', async () => {
 });
 campoSenha.addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('btnEntrar').click(); });
 document.getElementById('btnAtualizar').addEventListener('click', carregar);
+document.getElementById('btnAjustar').addEventListener('click', async () => {
+  const valor = prompt('Quantos orçamentos atendidos devem ser exibidos no site? (o site mostra 515 + este valor)', '0');
+  if(valor === null) return;
+  const n = parseInt(valor, 10);
+  if(isNaN(n) || n < 0){ alert('Valor inválido.'); return; }
+  const res = await fetch(API + '/api/admin/contador/atendidos', {
+    method:'PUT',
+    headers:{'Authorization':'Bearer ' + token, 'Content-Type':'application/json'},
+    body: JSON.stringify({valor: n})
+  });
+  const data = await res.json();
+  if(data.success){ alert('Contador ajustado: o site agora mostra ' + (515 + n) + ' orçamentos atendidos.'); carregar(); }
+  else{ alert(data.message || 'Erro ao ajustar o contador.'); }
+});
 document.getElementById('btnSair').addEventListener('click', () => { localStorage.removeItem(salvar); token=''; mostrarLogin(); });
 document.getElementById('btnExportar').addEventListener('click', async () => {
   const res = await fetch(API + '/api/admin/solicitacoes', {headers:{'Authorization':'Bearer ' + token}});

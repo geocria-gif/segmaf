@@ -317,6 +317,27 @@ def admin_anexo(aid):
         sess.close()
 
 
+@app.route("/api/admin/contador/atendidos", methods=["PUT"])
+def admin_ajustar_contador():
+    if not autorizado():
+        return jsonify({"success": False, "message": "Não autorizado."}), 401
+    dados = request.get_json(silent=True) or {}
+    try:
+        valor = int(dados.get("valor", -1))
+    except (TypeError, ValueError):
+        valor = -1
+    if valor < 0:
+        return jsonify({"success": False, "message": "Valor inválido."}), 400
+    with Session.begin() as sess:
+        meta = sess.get(Meta, "atendidos_total")
+        if not meta:
+            sess.add(Meta(chave="atendidos_total", valor=valor))
+        else:
+            meta.valor = valor
+    log(f"Contador atendidos ajustado para {valor}")
+    return jsonify({"success": True, "atendidos": valor}), 200
+
+
 @app.route("/api/admin/solicitacoes/<int:sid>", methods=["PATCH"])
 def admin_atualizar(sid):
     if not autorizado():
