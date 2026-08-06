@@ -139,7 +139,8 @@ function renderizar(itens, total){
     <tr>
       <td class="nome">${esc(s.nome)}</td>
       <td>${esc(s.email)}<br/><span class="tag">${esc(s.telefone || 'sem telefone')}</span></td>
-      <td>${esc(s.assunto)}<br/><small>${fmtData(s.criado_em)}</small></td>
+      <td>${esc(s.assunto)}<br/><small>${fmtData(s.criado_em)}</small>
+        ${(s.anexos||[]).map(a => `<br/><a href="#" onclick="baixarAnexo(${a.id});return false;" style="color:#F26522;font-size:.8rem">&#128206; ${esc(a.nome)}</a>`).join('')}</td>
       <td><span class="tag">${esc(s.cidade || '—')}</span><br/><small>${esc(s.endereco || '')}</small>
         ${s.latitude ? `<br/><small>${s.latitude}, ${s.longitude}</small>` : ''}</td>
       <td class="mensagem-texto">${esc(s.mensagem)}</td>
@@ -156,6 +157,20 @@ function esc(t){ return String(t == null ? '' : t).replace(/&/g,'&amp;').replace
 function abrirWhats(url){
   if(url === 'https://wa.me/55'){ alert('Sem telefone informado.'); return; }
   window.open(url, '_blank');
+}
+
+async function baixarAnexo(id){
+  const res = await fetch(API + '/api/admin/anexo/' + id, {headers:{'Authorization':'Bearer ' + token}});
+  if(!res.ok){ alert('Erro ao baixar o anexo.'); return; }
+  const blob = await res.blob();
+  let nome = 'anexo';
+  const nomeHdr = res.headers.get('X-Anexo-Nome');
+  if(nomeHdr){ try{ nome = decodeURIComponent(nomeHdr); }catch(e){ nome = nomeHdr; } }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nome;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 async function excluir(id){

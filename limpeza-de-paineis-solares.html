@@ -650,6 +650,10 @@ footer{
           <option value="Duvidas">Dúvidas</option>
         </select>
         <textarea name="mensagem" placeholder="Mensagem" required></textarea>
+        <label class="file-label">Anexos (imagens ou PDF — máx. 3)
+          <input type="file" name="anexo" accept="image/*,.pdf" multiple id="fileInput" />
+          <div class="file-info" id="fileInfo">Nenhum arquivo selecionado</div>
+        </label>
         <button type="submit" class="btn btn-primary">Enviar Solicitação</button>
         <div id="formMsg" style="display:none"></div>
       </form>
@@ -712,6 +716,16 @@ const toTop=document.getElementById('toTop');
 window.addEventListener('scroll',()=>{toTop.classList.toggle('show',window.scrollY>600)});
 toTop.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
 const FORM_ENDPOINT='https://segmaf-api.onrender.com/api/orcamento';
+const fileInput=document.getElementById('fileInput');
+const fileInfo=document.getElementById('fileInfo');
+if(fileInput){fileInput.addEventListener('change',function(){
+  const files=Array.from(this.files);
+  if(files.length>3){const kept=files.slice(0,3);const dt=new DataTransfer();kept.forEach(f=>dt.items.add(f));this.files=dt.files;}
+  let tamanho=0;Array.from(this.files).forEach(f=>tamanho+=f.size);
+  if(tamanho>5*1024*1024){alert('O total dos anexos não pode passar de 5 MB.');this.value='';fileInfo.textContent='Nenhum arquivo selecionado';return;}
+  const n=this.files.length;
+  fileInfo.textContent=n===0?'Nenhum arquivo selecionado':n+' arquivo'+(n>1?'s':'')+': '+Array.from(this.files).map(f=>f.name).join(', ');
+});}
 const form=document.getElementById('contactForm');
 if(form){form.addEventListener('submit',async function(e){
   e.preventDefault();
@@ -723,7 +737,7 @@ if(form){form.addEventListener('submit',async function(e){
   try{
     const res=await fetch(FORM_ENDPOINT,{method:'POST',body:f});
     const data=await res.json();
-    if(data.success){msg.className='success';msg.textContent='Recebemos sua solicitação! Entraremos em contato em breve.';this.reset();}
+    if(data.success){msg.className='success';msg.textContent='Recebemos sua solicitação! Entraremos em contato em breve.';this.reset();if(fileInfo)fileInfo.textContent='Nenhum arquivo selecionado';}
     else{msg.className='error';msg.textContent=data.message||'Erro ao enviar. Tente novamente.';}
   }catch{msg.className='error';msg.textContent='Erro ao enviar. Verifique sua conexão e tente novamente.';}
   msg.style.display='block';

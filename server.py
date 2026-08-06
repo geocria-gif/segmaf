@@ -1,10 +1,12 @@
 import os
+import base64
 import smtplib
 import datetime
 from email.message import EmailMessage
 from email.utils import formataddr
+from urllib.parse import quote
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
 from sqlalchemy import create_engine, Column, Integer, String, Float, Text, DateTime, text
 from sqlalchemy.orm import declarative_base, sessionmaker
@@ -39,11 +41,23 @@ class Solicitacao(Base):
     mensagem = Column(Text)
 
 
+class Anexo(Base):
+    __tablename__ = "anexos"
+    id = Column(Integer, primary_key=True)
+    solicitacao_id = Column(Integer, index=True)
+    nome_arquivo = Column(String(255))
+    mime_type = Column(String(120))
+    tamanho = Column(Integer)
+    dados = Column(Text)
+
+
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 
 # --- Configuracoes --------------------------------------------------------
 ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "").strip()
+MAX_ANEXOS = int(os.environ.get("MAX_ANEXOS", "3"))
+MAX_ANEXOS_BYTES = int(os.environ.get("MAX_ANEXOS_BYTES", str(5 * 1024 * 1024)))
 
 SMTP_HOST = os.environ.get("SMTP_HOST", "smtp-relay.brevo.com")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
@@ -150,16 +164,37 @@ def api_orcamento():
         assunto=assunto,
         mensagem=mensagem,
     )
+
+    anexos = [(a, a.read()) for a in request.files.getlist("anexo") if a and a.filename]
+    if len(anexos) > MAX_ANEXOS:
+        return jsonify({"success": False, "message": f"Máximo de {MAX_ANEXOS} anexos por solicitação."}), 400
+    total_anexos = sum(len(c) for _, c in anexos)
+    if total_anexos > MAX_ANEXOS_BYTES:
+        return jsonify({"success": False, "message": "O total dos anexos não pode passar de 5 MB."}), 400
+    for a, c in anexos:
+        mt = (a.mimetype or "").lower()
+        nome = (a.filename or "").lower()
+        if not (mt.startswith("image/") or mt == "application/pdf" or nome.endswith(".pdf")):
+            return jsonify({"success": False, "message": "Somente imagens ou arquivos PDF são permitidos."}), 400
+
     try:
         with Session.begin() as sess:
             sess.add(sol)
             sess.flush()
             novo_id = sol.id
+            for a, c in anexos:
+                sess.add(Anexo(
+                    solicitacao_id=novo_id,
+                    nome_arquivo=a.filename,
+                    mime_type=a.mimetype or "application/octet-stream",
+                    tamanho=len(c),
+                    dados=base64.b64encode(c).decode("ascii"),
+                ))
     except Exception as e:
         log(f"ERRO ao salvar no banco: {e!r}")
         return jsonify({"success": False, "message": "Erro ao salvar sua solicitação. Tente novamente."}), 500
 
-    log(f"Solicitação #{novo_id} salva: {nome} / {assunto}")
+    log(f"Solicitação #{novo_id} salva: {nome} / {assunto} ({len(anexos)} anexo(s))")
     import threading
     threading.Thread(
         target=enviar_email_async,
@@ -186,6 +221,16 @@ def admin_solicitacoes():
     sess = Session()
     try:
         itens = sess.query(Solicitacao).order_by(Solicitacao.id.desc()).limit(500).all()
+        ids = [s.id for s in itens]
+        anexos_por_sol = {}
+        if ids:
+            for a in sess.query(Anexo).filter(Anexo.solicitacao_id.in_(ids)).all():
+                anexos_por_sol.setdefault(a.solicitacao_id, []).append({
+                    "id": a.id,
+                    "nome": a.nome_arquivo,
+                    "mime": a.mime_type,
+                    "tamanho": a.tamanho,
+                })
         return jsonify({
             "success": True,
             "total": len(itens),
@@ -201,8 +246,27 @@ def admin_solicitacoes():
                 "longitude": s.longitude,
                 "assunto": s.assunto,
                 "mensagem": s.mensagem,
+                "anexos": anexos_por_sol.get(s.id, []),
             } for s in itens]
         }), 200
+    finally:
+        sess.close()
+
+
+@app.route("/api/admin/anexo/<int:aid>", methods=["GET"])
+def admin_anexo(aid):
+    if not autorizado():
+        return jsonify({"success": False, "message": "Não autorizado."}), 401
+    sess = Session()
+    try:
+        a = sess.get(Anexo, aid)
+        if not a:
+            return jsonify({"success": False, "message": "Anexo não encontrado."}), 404
+        dados = base64.b64decode(a.dados or "")
+        resp = Response(dados, mimetype=a.mime_type or "application/octet-stream")
+        resp.headers["Content-Disposition"] = "attachment"
+        resp.headers["X-Anexo-Nome"] = quote(a.nome_arquivo or "anexo")
+        return resp
     finally:
         sess.close()
 
