@@ -60,6 +60,16 @@ class Meta(Base):
     valor = Column(Integer, default=0)
 
 
+class Imagem(Base):
+    __tablename__ = "imagens"
+    chave = Column(String(50), primary_key=True)
+    dados = Column(Text)
+    mime = Column(String(120))
+    nome = Column(String(255))
+    tamanho = Column(Integer)
+    atualizada_em = Column(DateTime, default=datetime.datetime.utcnow)
+
+
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 
@@ -93,6 +103,18 @@ migrar_tabela()
 ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "").strip()
 MAX_ANEXOS = int(os.environ.get("MAX_ANEXOS", "3"))
 MAX_ANEXOS_BYTES = int(os.environ.get("MAX_ANEXOS_BYTES", str(5 * 1024 * 1024)))
+MAX_IMAGEM_BYTES = int(os.environ.get("MAX_IMAGEM_MB", "3")) * 1024 * 1024
+
+CARD_KEYS = [
+    "limpeza-paineis-solares",
+    "limpeza-pos-obras",
+    "capina-quimica-usina-solar",
+    "capina-corporativa",
+    "rocagem-usina-solar",
+    "pulverizacao-area-irrigada",
+    "captura-de-abelhas",
+    "limpeza-cercamento-aceiros",
+]
 
 SMTP_HOST = os.environ.get("SMTP_HOST", "smtp-relay.brevo.com")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
@@ -256,6 +278,129 @@ def api_orcamento():
         daemon=True,
     ).start()
     return jsonify({"success": True, "message": "Recebemos sua solicitação! Entraremos em contato em breve."}), 200
+
+
+@app.route("/api/cartoes", methods=["GET"])
+def cartoes():
+    try:
+        with Session() as sess:
+            custom = {c.chave: c for c in sess.query(Imagem).filter(Imagem.chave.in_(CARD_KEYS)).all()}
+        resultado = {}
+        for chave in CARD_KEYS:
+            c = custom.get(chave)
+            if c and c.dados:
+                ts = int(c.atualizada_em.timestamp()) if c.atualizada_em else 0
+                resultado[chave] = f"/api/imagem/{chave}?v={ts}"
+            else:
+                resultado[chave] = None
+        return jsonify({"success": True, "cartoes": resultado}), 200
+    except Exception as e:
+        log(f"Cartoes: {e!r}")
+        return jsonify({"success": False, "cartoes": {}}), 500
+
+
+@app.route("/api/imagem/<chave>", methods=["GET"])
+def imagem_publica(chave):
+    if chave not in CARD_KEYS:
+        return jsonify({"success": False, "message": "Chave inválida."}), 404
+    sess = Session()
+    try:
+        img = sess.get(Imagem, chave)
+        if not img or not img.dados:
+            return jsonify({"success": False, "message": "Imagem não encontrada."}), 404
+        dados = base64.b64decode(img.dados)
+        resp = Response(dados, mimetype=img.mime or "image/png")
+        resp.headers["Cache-Control"] = "public, max-age=3600"
+        return resp
+    except Exception as e:
+        log(f"Imagem {chave}: {e!r}")
+        return jsonify({"success": False, "message": "Erro ao carregar a imagem."}), 500
+    finally:
+        sess.close()
+
+
+@app.route("/api/admin/imagens", methods=["GET"])
+def admin_imagens():
+    if not autorizado():
+        return jsonify({"success": False, "message": "Não autorizado."}), 401
+    sess = Session()
+    try:
+        custom = {c.chave: c for c in sess.query(Imagem).all()}
+        resultado = []
+        for chave in CARD_KEYS:
+            c = custom.get(chave)
+            resultado.append({
+                "chave": chave,
+                "custom": bool(c and c.dados),
+                "nome": c.nome if c else None,
+                "mime": c.mime if c else None,
+                "tamanho": c.tamanho if c else None,
+                "atualizada_em": c.atualizada_em.isoformat() if c and c.atualizada_em else None,
+                "url": f"/api/imagem/{chave}" if c and c.dados else None,
+            })
+        return jsonify({"success": True, "imagens": resultado}), 200
+    finally:
+        sess.close()
+
+
+@app.route("/api/admin/imagens/<chave>", methods=["PUT"])
+def admin_enviar_imagem(chave):
+    if not autorizado():
+        return jsonify({"success": False, "message": "Não autorizado."}), 401
+    if chave not in CARD_KEYS:
+        return jsonify({"success": False, "message": "Chave inválida."}), 400
+    dados = None
+    mime = None
+    nome = None
+    arquivo = request.files.get("arquivo")
+    if arquivo and arquivo.filename:
+        dados = arquivo.read()
+        mime = arquivo.mimetype or "image/png"
+        nome = arquivo.filename
+    else:
+        j = request.get_json(silent=True) or {}
+        if j.get("dados"):
+            try:
+                dados = base64.b64decode(j["dados"])
+            except Exception:
+                return jsonify({"success": False, "message": "Dados inválidos."}), 400
+            mime = j.get("mime") or "image/png"
+            nome = j.get("nome")
+    if not dados:
+        return jsonify({"success": False, "message": "Envie um arquivo de imagem."}), 400
+    if not (mime or "").startswith("image/"):
+        return jsonify({"success": False, "message": "Somente imagens (JPG, PNG, WebP) são permitidas."}), 400
+    if len(dados) > MAX_IMAGEM_BYTES:
+        return jsonify({"success": False, "message": "A imagem não pode passar de 3 MB."}), 400
+    with Session.begin() as sess:
+        img = sess.get(Imagem, chave)
+        codigo = base64.b64encode(dados).decode("ascii")
+        agora = datetime.datetime.utcnow()
+        if img:
+            img.dados = codigo
+            img.mime = mime
+            img.nome = nome
+            img.tamanho = len(dados)
+            img.atualizada_em = agora
+        else:
+            sess.add(Imagem(chave=chave, dados=codigo, mime=mime, nome=nome,
+                            tamanho=len(dados), atualizada_em=agora))
+    log(f"Imagem do card '{chave}' atualizada ({len(dados)} bytes)")
+    return jsonify({"success": True, "url": f"/api/imagem/{chave}"}), 200
+
+
+@app.route("/api/admin/imagens/<chave>", methods=["DELETE"])
+def admin_remover_imagem(chave):
+    if not autorizado():
+        return jsonify({"success": False, "message": "Não autorizado."}), 401
+    if chave not in CARD_KEYS:
+        return jsonify({"success": False, "message": "Chave inválida."}), 400
+    with Session.begin() as sess:
+        img = sess.get(Imagem, chave)
+        if img:
+            sess.delete(img)
+    log(f"Imagem do card '{chave}' restaurada para o padrão")
+    return jsonify({"success": True}), 200
 
 
 @app.route("/api/admin/solicitacoes", methods=["GET"])

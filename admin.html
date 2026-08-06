@@ -40,6 +40,13 @@ td.nome{font-weight:600}
 .rodape{text-align:center;font-size:.75rem;color:#94a3b8;margin:32px 0}
 .vazio{color:#64748b;text-align:center;padding:32px;font-size:.9rem}
 .acoes-linha{display:flex;gap:8px;justify-content:flex-end}
+.img-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-top:8px}
+.img-item{border:1px solid #e3e8ef;border-radius:10px;padding:12px;background:#fafbfc}
+.img-item img{width:100%;height:110px;object-fit:cover;border-radius:8px;background:#eef2f7}
+.img-item .nome-img{font-weight:600;font-size:.85rem;margin:8px 0 2px;color:#0A2540}
+.img-item .info-img{font-size:.75rem;color:#64748b;margin-bottom:8px}
+.img-item .acoes-img{display:flex;gap:8px;flex-wrap:wrap}
+.verde{color:#15803d;font-weight:600}
 @media(max-width:700px){
   table{font-size:.78rem}
   th,td{padding:8px}
@@ -79,6 +86,14 @@ td.nome{font-weight:600}
     <div class="mensagem hidden" id="msgPainel"></div>
     <div class="card" style="margin-top:16px;overflow-x:auto">
       <div id="tabela"></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div style="font-size:1rem;font-weight:600">Imagens dos Cards — In&iacute;cio do Site</div>
+      <p style="font-size:.85rem;color:#64748b;margin:4px 0 8px">
+        Troque as imagens dos cards de servi&ccedil;o da p&aacute;gina inicial (e do carrossel do topo). Envie JPG, PNG ou WebP de at&eacute; 3 MB.
+      </p>
+      <div class="img-grid" id="gradeImagens"></div>
+      <div class="mensagem" id="msgImagens"></div>
     </div>
   </div>
 </main>
@@ -220,7 +235,7 @@ document.getElementById('btnEntrar').addEventListener('click', async () => {
     if(data.success){
       token = senha;
       localStorage.setItem(salvar, token);
-      mostrarPainel(); carregar();
+      mostrarPainel(); carregar(); carregarImagens();
     }else{
       msgLogin.textContent = 'Senha incorreta.'; msgLogin.className='mensagem erro';
     }
@@ -251,9 +266,78 @@ document.getElementById('btnExportar').addEventListener('click', async () => {
   if(data.success){ exportarCSV(data.solicitacoes); }
 });
 
+const CARD_LABELS = {
+  'limpeza-paineis-solares':'Limpeza de Painéis Solares',
+  'limpeza-pos-obras':'Limpeza Pós Obras',
+  'capina-quimica-usina-solar':'Capina Química em Usinas Solares',
+  'capina-corporativa':'Capina Corporativa',
+  'rocagem-usina-solar':'Roçagem em Usinas Solares',
+  'pulverizacao-area-irrigada':'Pulverização em Áreas Irrigadas',
+  'captura-de-abelhas':'Captura de Abelhas',
+  'limpeza-cercamento-aceiros':'Limpeza de Cercamento e Aceiros'
+};
+
+async function carregarImagens(){
+  const g = document.getElementById('gradeImagens');
+  const msg = document.getElementById('msgImagens');
+  msg.classList.add('hidden');
+  g.innerHTML = '<div class="vazio">Carregando imagens...</div>';
+  try{
+    const res = await fetch(API + '/api/admin/imagens', {headers:{'Authorization':'Bearer ' + token}});
+    const data = await res.json();
+    if(!data.success){ throw new Error(data.message || 'Erro ao carregar.'); }
+    g.innerHTML = data.imagens.map(img => {
+      const origem = img.custom ? '<span class="verde">Personalizada</span>' : 'Padrão do site';
+      const dataInfo = img.custom ? (' · ' + (img.atualizada_em ? fmtData(img.atualizada_em) : '')) : '';
+      const src = img.custom ? (API + img.url) : (img.chave + '.png');
+      const botoes = '<button class="btn-outline" onclick="enviarImagem(\'' + img.chave + '\')">Trocar imagem</button>' +
+        (img.custom ? '<button class="btn-danger" onclick="restaurarImagem(\'' + img.chave + '\')">Restaurar padrão</button>' : '');
+      return '<div class="img-item">' +
+        '<img src="' + src + '" alt="' + esc(CARD_LABELS[img.chave]) + '" loading="lazy" />' +
+        '<div class="nome-img">' + esc(CARD_LABELS[img.chave]) + '</div>' +
+        '<div class="info-img">' + origem + dataInfo + '</div>' +
+        '<div class="acoes-img">' + botoes + '</div>' +
+        '<input type="file" accept="image/jpeg,image/png,image/webp" id="arquivo-' + img.chave + '" style="display:none" onchange="uploadImagem(\'' + img.chave + '\', this)" />' +
+      '</div>';
+    }).join('');
+  }catch(e){
+    g.innerHTML = '<div class="vazio">Não foi possível carregar as imagens. Verifique a conexão com a API.</div>';
+  }
+}
+
+function enviarImagem(chave){
+  document.getElementById('arquivo-' + chave).click();
+}
+
+async function uploadImagem(chave, input){
+  const arq = input.files[0];
+  if(!arq) return;
+  if(arq.size > 3*1024*1024){ alert('A imagem precisa ter até 3 MB.'); input.value=''; return; }
+  const fd = new FormData();
+  fd.append('arquivo', arq);
+  try{
+    const res = await fetch(API + '/api/admin/imagens/' + chave, {method:'PUT', headers:{'Authorization':'Bearer ' + token}, body: fd});
+    const data = await res.json();
+    if(data.success){ alert('Imagem atualizada! O site já deve exibi-la em segundos.'); carregarImagens(); }
+    else{ alert(data.message || 'Erro ao enviar a imagem.'); }
+  }catch(e){ alert('Falha de conexão com a API.'); }
+  input.value='';
+}
+
+async function restaurarImagem(chave){
+  if(!confirm('Restaurar a imagem padrão do site?')) return;
+  try{
+    const res = await fetch(API + '/api/admin/imagens/' + chave, {method:'DELETE', headers:{'Authorization':'Bearer ' + token}});
+    const data = await res.json();
+    if(data.success){ alert('Imagem padrão restaurada.'); carregarImagens(); }
+    else{ alert(data.message || 'Erro ao restaurar.'); }
+  }catch(e){ alert('Falha de conexão com a API.'); }
+}
+
 if(token){
   mostrarPainel();
   carregar();
+  carregarImagens();
 }
 </script>
 </body>
