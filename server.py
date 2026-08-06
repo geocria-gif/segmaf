@@ -8,7 +8,8 @@ from urllib.parse import quote
 
 from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
-from sqlalchemy import create_engine, Column, Integer, String, Float, Text, DateTime, text
+from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, Text, DateTime, text
+from sqlalchemy import inspect as sqlalchemy_inspect
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 app = Flask(__name__)
@@ -39,6 +40,8 @@ class Solicitacao(Base):
     longitude = Column(Float)
     assunto = Column(String(120))
     mensagem = Column(Text)
+    lido = Column(Boolean, default=False)
+    atendido = Column(Boolean, default=False)
 
 
 class Anexo(Base):
@@ -54,6 +57,28 @@ class Anexo(Base):
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 
+
+def log(texto):
+    print(texto, flush=True)
+
+
+def migrar_tabela():
+    try:
+        insp = sqlalchemy_inspect(engine)
+        if "solicitacoes" not in insp.get_table_names():
+            return
+        colunas = {c["name"] for c in insp.get_columns("solicitacoes")}
+        with engine.begin() as conn:
+            for col in ("lido", "atendido"):
+                if col not in colunas:
+                    conn.execute(text(f"ALTER TABLE solicitacoes ADD COLUMN {col} BOOLEAN NOT NULL DEFAULT FALSE"))
+                    log(f"Migracao: coluna {col} adicionada a solicitacoes")
+    except Exception as e:
+        log(f"Migracao: erro {e!r}")
+
+
+migrar_tabela()
+
 # --- Configuracoes --------------------------------------------------------
 ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "").strip()
 MAX_ANEXOS = int(os.environ.get("MAX_ANEXOS", "3"))
@@ -65,10 +90,6 @@ SMTP_USER = os.environ.get("SMTP_USER", "")
 SMTP_PASS = os.environ.get("SMTP_PASS", "")
 EMAIL_FROM = os.environ.get("EMAIL_FROM", SMTP_USER) or SMTP_USER
 EMAIL_TO = os.environ.get("EMAIL_TO", "segmaf@outlook.com")
-
-
-def log(texto):
-    print(texto, flush=True)
 
 
 def float_ou_nulo(valor):
@@ -141,6 +162,18 @@ def health():
         "banco": engine.dialect.name,
         "banco_conectado": conectado,
     }), 200
+
+
+@app.route("/api/contadores", methods=["GET"])
+def contadores():
+    try:
+        with Session() as sess:
+            atendidos = sess.query(Solicitacao).filter(Solicitacao.atendido.is_(True)).count()
+            nao_lidos = sess.query(Solicitacao).filter(Solicitacao.lido.is_(False)).count()
+        return jsonify({"success": True, "atendidos": atendidos, "nao_lidos": nao_lidos}), 200
+    except Exception as e:
+        log(f"Contadores: {e!r}")
+        return jsonify({"success": False, "atendidos": 0, "nao_lidos": 0}), 500
 
 
 @app.route("/api/orcamento", methods=["POST"])
@@ -246,6 +279,8 @@ def admin_solicitacoes():
                 "longitude": s.longitude,
                 "assunto": s.assunto,
                 "mensagem": s.mensagem,
+                "lido": bool(s.lido),
+                "atendido": bool(s.atendido),
                 "anexos": anexos_por_sol.get(s.id, []),
             } for s in itens]
         }), 200
@@ -269,6 +304,28 @@ def admin_anexo(aid):
         return resp
     finally:
         sess.close()
+
+
+@app.route("/api/admin/solicitacoes/<int:sid>", methods=["PATCH"])
+def admin_atualizar(sid):
+    if not autorizado():
+        return jsonify({"success": False, "message": "Não autorizado."}), 401
+    dados = request.get_json(silent=True) or {}
+    campos = {}
+    if "lido" in dados:
+        campos["lido"] = bool(dados["lido"])
+    if "atendido" in dados:
+        campos["atendido"] = bool(dados["atendido"])
+    if not campos:
+        return jsonify({"success": False, "message": "Nenhum campo válido para atualizar."}), 400
+    with Session.begin() as sess:
+        sol = sess.get(Solicitacao, sid)
+        if not sol:
+            return jsonify({"success": False, "message": "Solicitação não encontrada."}), 404
+        for chave, val in campos.items():
+            setattr(sol, chave, val)
+    log(f"Solicitação #{sid} atualizada: {list(campos)}")
+    return jsonify({"success": True}), 200
 
 
 @app.route("/api/admin/solicitacoes/<int:sid>", methods=["DELETE"])

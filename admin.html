@@ -144,12 +144,16 @@ function renderizar(itens, total){
       <td><span class="tag">${esc(s.cidade || '—')}</span><br/><small>${esc(s.endereco || '')}</small>
         ${s.latitude ? `<br/><small>${s.latitude}, ${s.longitude}</small>` : ''}</td>
       <td class="mensagem-texto">${esc(s.mensagem)}</td>
+      <td style="white-space:nowrap">
+        <label style="display:block;font-weight:600;font-size:.8rem;cursor:pointer;padding:2px 0"><input type="checkbox" onchange="marcar(${s.id},'lido',this.checked)" ${s.lido?'checked':''}> Lido</label>
+        <label style="display:block;font-weight:600;font-size:.8rem;cursor:pointer;padding:2px 0"><input type="checkbox" onchange="marcar(${s.id},'atendido',this.checked)" ${s.atendido?'checked':''}> Atendido</label>
+      </td>
       <td><div class="acoes-linha">
         <button class="btn-outline" onclick="abrirWhats('https://wa.me/55${String(s.telefone||'').replace(/\D/g,'')}')">Whats</button>
         <button class="btn-danger" onclick="excluir(${s.id})">Excluir</button>
       </div></td>
     </tr>`).join('');
-  tabela.innerHTML = '<table><thead><tr><th>Nome</th><th>Contato</th><th>Assunto</th><th>Localização</th><th>Mensagem</th><th>Ações</th></tr></thead><tbody>' + linhas + '</tbody></table>';
+  tabela.innerHTML = '<table><thead><tr><th>Nome</th><th>Contato</th><th>Assunto</th><th>Localização</th><th>Mensagem</th><th>Status</th><th>Ações</th></tr></thead><tbody>' + linhas + '</tbody></table>';
 }
 
 function esc(t){ return String(t == null ? '' : t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -171,6 +175,16 @@ async function baixarAnexo(id){
   a.download = nome;
   a.click();
   URL.revokeObjectURL(a.href);
+}
+
+async function marcar(id, campo, valor){
+  const res = await fetch(API + '/api/admin/solicitacoes/' + id, {
+    method:'PATCH',
+    headers:{'Authorization':'Bearer ' + token, 'Content-Type':'application/json'},
+    body: JSON.stringify({[campo]: valor})
+  });
+  const data = await res.json();
+  if(!data.success){ alert(data.message || 'Erro ao atualizar.'); carregar(); }
 }
 
 async function excluir(id){

@@ -817,6 +817,14 @@ footer{
           <div class="stat-number">24/7</div>
           <div class="stat-label">Suporte Dedicado</div>
         </div>
+        <div class="stat-card">
+          <div class="stat-number" id="contadorAtendidos">515</div>
+          <div class="stat-label">Orçamentos Atendidos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="contadorNaoLidos">0</div>
+          <div class="stat-label">Orçamentos Não Lidos</div>
+        </div>
       </div>
     </div>
   </div>
@@ -1028,6 +1036,20 @@ document.getElementById('contactForm').addEventListener('submit',async function(
   msg.style.display='block';
   btn.disabled=false;btn.textContent='Enviar Solicita\u00E7\u00E3o';
 });
+
+// Contadores dinamicos dos orcamentos (Quem Somos)
+async function atualizarContadores(){
+  try{
+    const res=await fetch('https://segmaf-api.onrender.com/api/contadores');
+    const d=await res.json();
+    if(!d.success){return;}
+    const elAt=document.getElementById('contadorAtendidos');
+    const elNl=document.getElementById('contadorNaoLidos');
+    if(elAt){elAt.textContent=515+d.atendidos;}
+    if(elNl){elNl.textContent=d.nao_lidos;}
+  }catch(e){}
+}
+atualizarContadores();
 
 // Mapa da area de atendimento (Leaflet + OpenStreetMap)
 const mapaEl=document.getElementById('mapaAtendimento');
