@@ -6,7 +6,7 @@ from email.utils import formataddr
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from sqlalchemy import create_engine, Column, Integer, String, Float, Text, DateTime
+from sqlalchemy import create_engine, Column, Integer, String, Float, Text, DateTime, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 app = Flask(__name__)
@@ -113,7 +113,20 @@ def autorizado():
 # --- Rotas -----------------------------------------------------------------
 @app.route("/", methods=["GET"])
 def health():
-    return jsonify({"status": "ok", "servico": "SEGMAF API", "build": "db-v1"}), 200
+    conectado = False
+    try:
+        with Session() as s:
+            s.execute(text("SELECT 1"))
+            conectado = True
+    except Exception as e:
+        log(f"Health: banco indisponível: {e!r}")
+    return jsonify({
+        "status": "ok",
+        "servico": "SEGMAF API",
+        "build": "db-v1",
+        "banco": engine.dialect.name,
+        "banco_conectado": conectado,
+    }), 200
 
 
 @app.route("/api/orcamento", methods=["POST"])
