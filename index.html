@@ -832,7 +832,7 @@ footer{
     <div class="map-container fade-up">
       <div id="mapaAtendimento" role="application" aria-label="Mapa da área de atendimento da SEGMAF, com Irecê ao centro e raio de 200 km"></div>
     </div>
-    <p class="map-note fade-up">Irecê — BA · raio de 200 km de área de atendimento</p>
+    <p class="map-note fade-up">Navegue pelo mapa e clique na localização do seu empreendimento para consultar a cobertura de atendimento e iniciar sua solicitação de orçamento.</p>
   </div>
 </section>
 
@@ -1033,6 +1033,24 @@ if(mapaEl && typeof L!=='undefined'){
   mapa.fitBounds(area.getBounds(),{padding:[40,40]});
   mapaEl.addEventListener('click',()=>mapa.scrollWheelZoom.enable());
   let marcadorLocal=null;
+  async function logradouroMaisProximo(lat,lng){
+    try{
+      const q='[out:json][timeout:15];way(around:2000,'+lat+','+lng+')["highway"];out geom;';
+      const res=await fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q));
+      const d=await res.json();
+      let melhor=null, menor=Infinity;
+      (d.elements||[]).forEach(e=>{
+        if(!e.tags||!(e.tags.name||e.tags.ref)){return;}
+        (e.geometry||[]).forEach(pt=>{
+          const dl=pt.lat-parseFloat(lat), dn=pt.lon-parseFloat(lng);
+          const dist=dl*dl+dn*dn;
+          if(dist<menor){menor=dist; melhor=e;}
+        });
+      });
+      if(melhor){return melhor.tags.name||melhor.tags.ref||'';}
+    }catch(err){}
+    return '';
+  }
   mapa.on('click',async function(ev){
     const lat=ev.latlng.lat.toFixed(6);
     const lng=ev.latlng.lng.toFixed(6);
@@ -1042,15 +1060,22 @@ if(mapaEl && typeof L!=='undefined'){
     if(marcadorLocal){marcadorLocal.setLatLng(ev.latlng);}else{marcadorLocal=L.marker(ev.latlng).addTo(mapa);}
     latInput.value=lat;
     lngInput.value=lng;
+    let cidade='', logradouro='', numero='';
     try{
-      const res=await fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lng+'&format=jsonv2&accept-language=pt-BR&zoom=14',{headers:{'Accept-Language':'pt-BR'}});
+      const res=await fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lng+'&format=jsonv2&accept-language=pt-BR&zoom=17',{headers:{'Accept-Language':'pt-BR'}});
       const d=await res.json();
       const addr=d.address||{};
-      const cidade=addr.city||addr.town||addr.village||addr.municipality||addr.county||addr.state||'';
-      const endereco=[addr.road,addr.house_number].filter(Boolean).join(', ');
-      document.getElementById('cidade').value=cidade;
-      document.getElementById('endereco').value=endereco;
+      cidade=addr.city||addr.town||addr.village||addr.municipality||addr.county||addr.state||'';
+      logradouro=addr.road||addr.pedestrian||addr.footway||addr.path||addr.highway||'';
+      numero=addr.house_number||'';
     }catch(err){}
+    if(!logradouro){
+      logradouro=await logradouroMaisProximo(lat,lng);
+    }
+    document.getElementById('cidade').value=cidade;
+    document.getElementById('endereco').value=[logradouro,numero].filter(Boolean).join(', ');
+    const form=document.getElementById('contactForm');
+    if(form){form.scrollIntoView({behavior:'smooth',block:'center'});}
   });
 }
 </script>
