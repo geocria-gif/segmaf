@@ -54,6 +54,12 @@ class Anexo(Base):
     dados = Column(Text)
 
 
+class Meta(Base):
+    __tablename__ = "metas"
+    chave = Column(String(50), primary_key=True)
+    valor = Column(Integer, default=0)
+
+
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 
@@ -65,14 +71,18 @@ def log(texto):
 def migrar_tabela():
     try:
         insp = sqlalchemy_inspect(engine)
-        if "solicitacoes" not in insp.get_table_names():
-            return
-        colunas = {c["name"] for c in insp.get_columns("solicitacoes")}
-        with engine.begin() as conn:
-            for col in ("lido", "atendido"):
-                if col not in colunas:
-                    conn.execute(text(f"ALTER TABLE solicitacoes ADD COLUMN {col} BOOLEAN NOT NULL DEFAULT FALSE"))
-                    log(f"Migracao: coluna {col} adicionada a solicitacoes")
+        if "solicitacoes" in insp.get_table_names():
+            colunas = {c["name"] for c in insp.get_columns("solicitacoes")}
+            with engine.begin() as conn:
+                for col in ("lido", "atendido"):
+                    if col not in colunas:
+                        conn.execute(text(f"ALTER TABLE solicitacoes ADD COLUMN {col} BOOLEAN NOT NULL DEFAULT FALSE"))
+                        log(f"Migracao: coluna {col} adicionada a solicitacoes")
+        with Session.begin() as sess:
+            if not sess.get(Meta, "atendidos_total"):
+                n = sess.query(Solicitacao).filter(Solicitacao.atendido.is_(True)).count()
+                sess.add(Meta(chave="atendidos_total", valor=n))
+                log(f"Migracao: contador atendidos_total iniciado em {n}")
     except Exception as e:
         log(f"Migracao: erro {e!r}")
 
@@ -168,7 +178,8 @@ def health():
 def contadores():
     try:
         with Session() as sess:
-            atendidos = sess.query(Solicitacao).filter(Solicitacao.atendido.is_(True)).count()
+            meta = sess.get(Meta, "atendidos_total")
+            atendidos = meta.valor if meta else 0
             nao_lidos = sess.query(Solicitacao).filter(Solicitacao.lido.is_(False)).count()
         return jsonify({"success": True, "atendidos": atendidos, "nao_lidos": nao_lidos}), 200
     except Exception as e:
@@ -322,8 +333,17 @@ def admin_atualizar(sid):
         sol = sess.get(Solicitacao, sid)
         if not sol:
             return jsonify({"success": False, "message": "Solicitação não encontrada."}), 404
-        for chave, val in campos.items():
-            setattr(sol, chave, val)
+        if "atendido" in dados:
+            novo = bool(dados["atendido"])
+            if novo != bool(sol.atendido):
+                meta = sess.get(Meta, "atendidos_total")
+                if not meta:
+                    meta = Meta(chave="atendidos_total", valor=0)
+                    sess.add(meta)
+                meta.valor = (meta.valor or 0) + (1 if novo else -1)
+            sol.atendido = novo
+        if "lido" in dados:
+            sol.lido = bool(dados["lido"])
     log(f"Solicitação #{sid} atualizada: {list(campos)}")
     return jsonify({"success": True}), 200
 
