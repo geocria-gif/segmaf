@@ -80,16 +80,6 @@ td.nome{font-weight:600}
 </header>
 
 <main>
-  <div id="telaLogin" class="card centro">
-    <h2 style="font-size:1.1rem;margin-bottom:16px">Entrar no painel</h2>
-    <label for="campoSenha">Senha de acesso</label>
-    <input type="password" id="campoSenha" placeholder="Digite a senha" autocomplete="current-password" />
-    <div class="mensagem" id="msgLogin"></div>
-    <div style="margin-top:16px">
-      <button class="btn-primary" id="btnEntrar" style="width:100%">Entrar</button>
-    </div>
-  </div>
-
   <div class="galeria-wrap">
     <div class="galeria-titulo">GALERIA DE FOTOS</div>
     <div class="carrossel">
@@ -100,6 +90,16 @@ td.nome{font-weight:600}
       <button class="carrossel-btn prox" id="btnProx" aria-label="Próximo">&#10095;</button>
       <div class="carrossel-dots" id="dotsGaleria"></div>
       <div class="carrossel-contador" id="contadorGaleria"></div>
+    </div>
+  </div>
+
+  <div id="telaLogin" class="card centro">
+    <h2 style="font-size:1.1rem;margin-bottom:16px">Entrar no painel</h2>
+    <label for="campoSenha">Senha de acesso</label>
+    <input type="password" id="campoSenha" placeholder="Digite a senha" autocomplete="current-password" />
+    <div class="mensagem" id="msgLogin"></div>
+    <div style="margin-top:16px">
+      <button class="btn-primary" id="btnEntrar" style="width:100%">Entrar</button>
     </div>
   </div>
 
@@ -378,13 +378,39 @@ if(token){
 }
 
 // --- Galeria de fotos (carrossel) ---
-const GALERIA_FOTOS = ['FTO01.jpg','FTO01_3.jpg','FTO11.jpg','FTO11_5.jpg','IMG_AEREA.jpg','Plcas01.jpg','Sol01.jpg','Sol02.jpg','WhatsApp Image 2026-08-06 at 15.11.26 (1).jpeg','WhatsApp Image 2026-08-06 at 15.11.27 (1).jpeg','WhatsApp Image 2026-08-06 at 15.11.27.jpeg','WhatsApp Image 2026-08-06 at 15.11.28 (1).jpeg','WhatsApp Image 2026-08-06 at 15.11.28 (2).jpeg','WhatsApp Image 2026-08-06 at 15.11.28.jpeg','WhatsApp Image 2026-08-06 at 15.11.29 (1).jpeg','WhatsApp Image 2026-08-06 at 15.11.29 (2).jpeg','WhatsApp Image 2026-08-06 at 15.11.29 (3).jpeg','WhatsApp Image 2026-08-06 at 15.11.29.jpeg','WhatsApp Image 2026-08-06 at 15.11.30 (1).jpeg','WhatsApp Image 2026-08-06 at 15.11.30 (2).jpeg','WhatsApp Image 2026-08-06 at 15.11.30.jpeg'];
-(function(){
+// Lista carregada dinamicamente da pasta Galeria do repositório.
+// Fallback estático caso a API do GitHub esteja indisponível (rate limit/outage).
+const GALERIA_FALLBACK = ['FTO01.jpg','FTO01_3.jpg','FTO11.jpg','FTO11_5.jpg','IMG_AEREA.jpg','Plcas01.jpg','Sol01.jpg','Sol02.jpg','WhatsApp Image 2026-08-06 at 15.11.26 (1).jpeg','WhatsApp Image 2026-08-06 at 15.11.27 (1).jpeg','WhatsApp Image 2026-08-06 at 15.11.27.jpeg','WhatsApp Image 2026-08-06 at 15.11.28 (1).jpeg','WhatsApp Image 2026-08-06 at 15.11.28 (2).jpeg','WhatsApp Image 2026-08-06 at 15.11.28.jpeg','WhatsApp Image 2026-08-06 at 15.11.29 (1).jpeg','WhatsApp Image 2026-08-06 at 15.11.29 (2).jpeg','WhatsApp Image 2026-08-06 at 15.11.29 (3).jpeg','WhatsApp Image 2026-08-06 at 15.11.29.jpeg','WhatsApp Image 2026-08-06 at 15.11.30 (1).jpeg','WhatsApp Image 2026-08-06 at 15.11.30 (2).jpeg','WhatsApp Image 2026-08-06 at 15.11.30.jpeg'];
+
+async function carregarFotosGaleria(){
+  try{
+    const res = await fetch('https://api.github.com/repos/geocria-gif/segmaf/contents/Galeria', {headers:{'Accept':'application/vnd.github+json'}});
+    if(!res.ok) throw new Error('github api ' + res.status);
+    const dados = await res.json();
+    if(Array.isArray(dados)){
+      const fotos = dados
+        .filter(f => f.type === 'file' && /\.(jpe?g|png|webp|gif)$/i.test(f.name))
+        .map(f => f.name);
+      if(fotos.length) return fotos;
+    }
+    throw new Error('lista vazia');
+  }catch(e){
+    return GALERIA_FALLBACK.slice();
+  }
+}
+
+(async function(){
+  const GALERIA_FOTOS = await carregarFotosGaleria();
   const track = document.getElementById('trackGaleria');
   const dots = document.getElementById('dotsGaleria');
   const contador = document.getElementById('contadorGaleria');
   let idx = 0;
   let timer = null;
+
+  if(!GALERIA_FOTOS.length){
+    track.innerHTML = '<div class="carrossel-slide"><div style="color:#fff;text-align:center;padding:40px">Nenhuma foto na pasta Galeria.</div></div>';
+    return;
+  }
 
   track.innerHTML = GALERIA_FOTOS.map(n => '<div class="carrossel-slide"><img src="Galeria/' + encodeURIComponent(n) + '" alt="' + esc(n) + '" onclick="abrirLightbox(\'Galeria/' + encodeURIComponent(n) + '\')" /></div>').join('');
   dots.innerHTML = GALERIA_FOTOS.map((n, i) => '<button class="dot" data-i="' + i + '" title="' + esc(n) + '"></button>').join('');
