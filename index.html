@@ -1047,7 +1047,7 @@ async function atualizarContadores(){
     if(!d.success){return;}
     const elAt=document.getElementById('contadorAtendidos');
     const elNl=document.getElementById('contadorNaoLidos');
-    if(elAt){elAt.textContent=515+d.atendidos;}
+    if(elAt){elAt.textContent=d.atendidos;}
     if(elNl){elNl.textContent=d.nao_lidos;}
   }catch(e){}
 }

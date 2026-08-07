@@ -462,6 +462,21 @@ def admin_anexo(aid):
         sess.close()
 
 
+@app.route("/api/admin/contador/atendidos/recalcular", methods=["POST"])
+def admin_recalcular_contador():
+    if not autorizado():
+        return jsonify({"success": False, "message": "Não autorizado."}), 401
+    with Session.begin() as sess:
+        n = sess.query(Solicitacao).filter(Solicitacao.atendido.is_(True)).count()
+        meta = sess.get(Meta, "atendidos_total")
+        if not meta:
+            sess.add(Meta(chave="atendidos_total", valor=n))
+        else:
+            meta.valor = n
+    log(f"Contador atendidos recalculado a partir do banco: {n}")
+    return jsonify({"success": True, "atendidos": n}), 200
+
+
 @app.route("/api/admin/contador/atendidos", methods=["PUT"])
 def admin_ajustar_contador():
     if not autorizado():

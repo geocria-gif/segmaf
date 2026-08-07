@@ -284,28 +284,26 @@ document.getElementById('btnEntrar').addEventListener('click', async () => {
 campoSenha.addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('btnEntrar').click(); });
 document.getElementById('btnAtualizar').addEventListener('click', carregar);
 document.getElementById('btnAjustar').addEventListener('click', async () => {
-  const valor = prompt('Quantos orçamentos atendidos devem ser exibidos no site? (o site mostra 515 + este valor)', '0');
-  if(valor === null) return;
-  const n = parseInt(valor, 10);
-  if(isNaN(n) || n < 0){ alert('Valor inválido.'); return; }
-  const res = await fetch(API + '/api/admin/contador/atendidos', {
-    method:'PUT',
-    headers:{'Authorization':'Bearer ' + token, 'Content-Type':'application/json'},
-    body: JSON.stringify({valor: n})
-  });
-  const data = await res.json();
-  if(data.success){ alert('Contador ajustado: o site agora mostra ' + (515 + n) + ' orçamentos atendidos.'); carregar(); }
-  else{ alert(data.message || 'Erro ao ajustar o contador.'); }
+  if(!confirm('Sincronizar o contador com o número de orçamentos marcados como Atendido no banco de dados?')) return;
+  try{
+    const res = await fetch(API + '/api/admin/contador/atendidos/recalcular', {
+      method:'POST',
+      headers:{'Authorization':'Bearer ' + token}
+    });
+    const data = await res.json();
+    if(data.success){ alert('Contador ajustado a partir do banco: o site agora mostra ' + data.atendidos + ' orçamentos atendidos.'); carregar(); }
+    else{ alert(data.message || 'Erro ao ajustar o contador.'); }
+  }catch(e){ alert('Falha de conexão com a API.'); }
 });
 document.getElementById('btnZerar').addEventListener('click', async () => {
-  if(!confirm('Zerar o contador de orçamentos atendidos? O site voltará a mostrar 515.')) return;
+  if(!confirm('Zerar o contador de orçamentos atendidos? O site passará a mostrar 0.')) return;
   const res = await fetch(API + '/api/admin/contador/atendidos', {
     method:'PUT',
     headers:{'Authorization':'Bearer ' + token, 'Content-Type':'application/json'},
     body: JSON.stringify({valor: 0})
   });
   const data = await res.json();
-  if(data.success){ alert('Contador zerado: o site agora mostra 515 orçamentos atendidos.'); carregar(); }
+  if(data.success){ alert('Contador zerado: o site agora mostra 0 orçamentos atendidos.'); carregar(); }
   else{ alert(data.message || 'Erro ao zerar o contador.'); }
 });
 document.getElementById('btnSair').addEventListener('click', () => { localStorage.removeItem(salvar); token=''; mostrarLogin(); });
