@@ -111,6 +111,7 @@ td.nome{font-weight:600}
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn-outline" id="btnAtualizar">&#8635; Atualizar</button>
         <button class="btn-outline" id="btnAjustar">&#9998; Ajustar Atendidos</button>
+        <button class="btn-outline" id="btnZerar">&#8634; Zerar Atendidos</button>
         <button class="btn-outline" id="btnExportar">&#11015; Exportar CSV</button>
         <button class="btn-outline" id="btnSair">Sair</button>
       </div>
@@ -295,6 +296,17 @@ document.getElementById('btnAjustar').addEventListener('click', async () => {
   const data = await res.json();
   if(data.success){ alert('Contador ajustado: o site agora mostra ' + (515 + n) + ' orçamentos atendidos.'); carregar(); }
   else{ alert(data.message || 'Erro ao ajustar o contador.'); }
+});
+document.getElementById('btnZerar').addEventListener('click', async () => {
+  if(!confirm('Zerar o contador de orçamentos atendidos? O site voltará a mostrar 515.')) return;
+  const res = await fetch(API + '/api/admin/contador/atendidos', {
+    method:'PUT',
+    headers:{'Authorization':'Bearer ' + token, 'Content-Type':'application/json'},
+    body: JSON.stringify({valor: 0})
+  });
+  const data = await res.json();
+  if(data.success){ alert('Contador zerado: o site agora mostra 515 orçamentos atendidos.'); carregar(); }
+  else{ alert(data.message || 'Erro ao zerar o contador.'); }
 });
 document.getElementById('btnSair').addEventListener('click', () => { localStorage.removeItem(salvar); token=''; mostrarLogin(); });
 document.getElementById('btnExportar').addEventListener('click', async () => {
