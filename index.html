@@ -350,6 +350,10 @@ nav.scrolled{background:rgba(10,37,64,.98);box-shadow:0 4px 30px rgba(0,0,0,.3)}
   font-size:clamp(1rem,1.8vw,1.3rem);color:var(--cinza);max-width:540px;
   margin-bottom:32px;line-height:1.7;font-weight:300;
 }
+.hero-tagline .palavra-narrada{color:rgba(255,255,255,.46);transition:color .18s ease,text-shadow .18s ease}
+.hero-tagline .palavra-narrada.lida{color:rgba(255,255,255,.9)}
+.hero-tagline .palavra-narrada.atual{color:var(--laranja);text-shadow:0 0 18px rgba(242,101,34,.38)}
+@media(prefers-reduced-motion:reduce){.hero-tagline .palavra-narrada{color:var(--cinza);transition:none}}
 .hero-badge{
   display:inline-flex;align-items:center;gap:8px;
   background:rgba(212,165,116,.12);border:1px solid rgba(212,165,116,.25);
@@ -653,9 +657,8 @@ footer{
     <div class="hero-content">
       <div class="hero-badge">Excelência em Serviços Especializados</div>
       <h1>SEGMAF<br><span>Limpeza de Painéis Solares e Manutenção de Usinas Fotovoltaicas</span></h1>
-      <p class="hero-tagline">
-        Parceira do setor de Energia Renovável, oferecendo serviços especializados em limpeza,
-        manutenção preventiva e controle de vegetação para Usinas Fotovoltaicas.
+      <p class="hero-tagline" id="textoNarrado">
+        A SEGMAF é especialista em limpeza de módulos fotovoltaicos, manutenção preventiva e controle de vegetação em usinas solares. Com equipe capacitada, planejamento técnico e foco em segurança, ajudamos a preservar os equipamentos, reduzir riscos operacionais e manter a eficiência da geração de energia.
       </p>
       <div class="btn-group">
         <a href="#servicos" class="btn btn-primary">
@@ -984,6 +987,31 @@ const observer=new IntersectionObserver((entries)=>{
   entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible');observer.unobserve(entry.target)}});
 },{threshold:.1});
 document.querySelectorAll('.fade-up').forEach(el=>observer.observe(el));
+
+// Destaque progressivo, como uma leitura narrada do texto institucional
+const textoNarrado=document.getElementById('textoNarrado');
+if(textoNarrado){
+  const palavras=textoNarrado.textContent.trim().split(/\s+/);
+  textoNarrado.innerHTML=palavras.map(p=>`<span class="palavra-narrada">${p}</span>`).join(' ');
+  if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    const spans=textoNarrado.querySelectorAll('.palavra-narrada');
+    let palavraAtual=0;
+    function destacarPalavra(){
+      spans.forEach((span,i)=>{
+        span.classList.toggle('lida',i<palavraAtual);
+        span.classList.toggle('atual',i===palavraAtual);
+      });
+      palavraAtual++;
+      if(palavraAtual>spans.length){
+        palavraAtual=0;
+        setTimeout(destacarPalavra,1200);
+      }else{
+        setTimeout(destacarPalavra,155);
+      }
+    }
+    destacarPalavra();
+  }
+}
 
 
 // Hero screen - slides + nomes + dots sincronizados
