@@ -272,24 +272,20 @@ nav.scrolled{background:rgba(10,37,64,.98);box-shadow:0 4px 30px rgba(0,0,0,.3)}
 .screen-panel img{
   width:100%;height:100%;object-fit:cover;display:block;
 }
+.screen-panel .panel-base{position:absolute;inset:0}
+.screen-panel .panel-content{
+  position:absolute;inset:4px;width:calc(100% - 8px);height:calc(100% - 8px);
+  border-radius:12px;opacity:0;transform:scale(1.045);z-index:1;
+  transition:opacity .35s ease,transform 1.85s ease;
+}
+.screen-panel.exibindo .panel-content{opacity:1;transform:scale(1)}
 .screen-panel.p1{transform:rotate(14deg) translateY(45px)}
 .screen-panel.p2{transform:rotate(14deg);z-index:3}
 .screen-panel.p3{transform:rotate(14deg) translateY(45px)}
 .screen-panel::after{
-  content:'';position:absolute;inset:0;pointer-events:none;
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:2;
   background:linear-gradient(200deg,rgba(255,255,255,.06),transparent 40%,rgba(10,37,64,.35));
 }
-.screen-slides{
-  position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);
-  width:430px;height:672px;z-index:5;
-}
-.slide{
-  position:absolute;left:0;right:0;top:0;bottom:0;width:100%;height:100%;
-  border-radius:12px;object-fit:cover;margin:auto;
-  opacity:0;transform:scale(1.06) rotate(14deg);transition:opacity 1s cubic-bezier(.4,0,.2,1),transform 6s cubic-bezier(.4,0,.2,1);
-  box-shadow:0 16px 40px rgba(0,0,0,.45);
-}
-.slide.active{opacity:1;transform:scale(1) rotate(14deg)}
 /* Service info abaixo dos painéis */
 .hero-service{
   margin-top:-12px;text-align:center;position:relative;min-height:56px;
@@ -605,7 +601,6 @@ footer{
   .screen-panel.p1{width:clamp(60px,20vw,100px);height:clamp(100px,26vh,165px);transform:rotate(14deg) translateY(25px)}
   .screen-panel.p2,.screen-panel.p3{width:clamp(88px,28vw,135px);height:clamp(150px,38vh,230px)}
   .screen-panel.p3{transform:rotate(14deg) translateY(25px)}
-  .screen-slides{top:45%;width:clamp(110px,30vw,160px);height:clamp(170px,46vw,245px)}
   .hero-service{margin-top:4px;min-height:100px}
   .about-stats{grid-template-columns:1fr}
 }
@@ -614,14 +609,12 @@ footer{
   .hero-screen{height:726px}
   .screen-panel.p1{width:191px;height:459px;transform:rotate(14deg)}
   .screen-panel.p2,.screen-panel.p3{width:287px;height:623px;transform:rotate(14deg)}
-  .screen-slides{top:42%}
 }
 /* Tamanho exato paineis 1920x1080 */
 @media(min-width:1600px){
   .hero-screen{height:841px}
   .screen-panel.p1{width:253px;height:402px;transform:rotate(14deg)}
   .screen-panel.p2,.screen-panel.p3{width:402px;height:751px;transform:rotate(14deg)}
-  .screen-slides{top:42%}
 }
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -670,19 +663,9 @@ footer{
     </div>
     <div class="hero-visual">
       <div class="hero-screen">
-        <div class="screen-panel p1"><img src="painel_solar.svg" alt="Painel solar fotovoltaico SEGMAF" /></div>
-        <div class="screen-panel p2"><img src="painel_solar.svg" alt="Painel solar fotovoltaico para limpeza profissional" /></div>
-        <div class="screen-panel p3"><img src="painel_solar.svg" alt="Manutenção e limpeza de painéis solares SEGMAF" /></div>
-        <div class="screen-slides">
-          <img class="slide active" src="limpeza-paineis-solares.png" alt="Limpeza de painéis solares em usina fotovoltaica" data-chave="limpeza-paineis-solares" />
-          <img class="slide" src="limpeza-pos-obras.png" alt="Limpeza pós obras em usina solar" data-chave="limpeza-pos-obras" />
-          <img class="slide" src="capina-quimica-usina-solar.png" alt="Capina química para controle de vegetação em usinas solares" data-chave="capina-quimica-usina-solar" />
-          <img class="slide" src="capina-corporativa.png" alt="Capina química e mecânica em ambiente corporativo" data-chave="capina-corporativa" />
-          <img class="slide" src="rocagem-usina-solar.png" alt="Roçagem de vegetação em usina fotovoltaica" data-chave="rocagem-usina-solar" />
-          <img class="slide" src="pulverizacao-area-irrigada.png" alt="Pulverização em áreas irrigadas" data-chave="pulverizacao-area-irrigada" />
-          <img class="slide" src="captura-de-abelhas.png" alt="Captura de abelhas com descarte responsável" data-chave="captura-de-abelhas" />
-          <img class="slide" src="limpeza-cercamento-aceiros.png" alt="Limpeza de cercamento e aceiros para prevenção de incêndios" data-chave="limpeza-cercamento-aceiros" />
-        </div>
+        <div class="screen-panel p1"><img class="panel-base" src="painel_solar.svg" alt="Painel solar fotovoltaico SEGMAF" /><img class="panel-content" alt="" /></div>
+        <div class="screen-panel p2"><img class="panel-base" src="painel_solar.svg" alt="Painel solar fotovoltaico para limpeza profissional" /><img class="panel-content" alt="" /></div>
+        <div class="screen-panel p3"><img class="panel-base" src="painel_solar.svg" alt="Manutenção e limpeza de painéis solares SEGMAF" /><img class="panel-content" alt="" /></div>
       </div>
       <div class="hero-service">
         <div class="service-info">
@@ -1014,23 +997,55 @@ if(textoNarrado){
 }
 
 
-// Hero screen - slides + nomes + dots sincronizados
-const slides=document.querySelectorAll('.slide');
+// Hero screen: uma imagem por vez, alternando entre os tres paineis
+const heroMedia=[
+  {chave:'limpeza-paineis-solares',src:'limpeza-paineis-solares.png',alt:'Limpeza de painéis solares em usina fotovoltaica'},
+  {chave:'limpeza-pos-obras',src:'limpeza-pos-obras.png',alt:'Limpeza pós obras em usina solar'},
+  {chave:'capina-quimica-usina-solar',src:'capina-quimica-usina-solar.png',alt:'Capina química para controle de vegetação em usinas solares'},
+  {chave:'capina-corporativa',src:'capina-corporativa.png',alt:'Capina química e mecânica em ambiente corporativo'},
+  {chave:'rocagem-usina-solar',src:'rocagem-usina-solar.png',alt:'Roçagem de vegetação em usina fotovoltaica'},
+  {chave:'pulverizacao-area-irrigada',src:'pulverizacao-area-irrigada.png',alt:'Pulverização em áreas irrigadas'},
+  {chave:'captura-de-abelhas',src:'captura-de-abelhas.png',alt:'Captura de abelhas com descarte responsável'},
+  {chave:'limpeza-cercamento-aceiros',src:'limpeza-cercamento-aceiros.png',alt:'Limpeza de cercamento e aceiros para prevenção de incêndios'}
+];
+const heroPanels=Array.from(document.querySelectorAll('.screen-panel'));
 const serviceItems=document.querySelectorAll('.service-info-item');
 const dots=document.querySelectorAll('.hero-dots .dot');
 let carIndex=0;
-function goToSlide(i){
-  slides.forEach((s,idx)=>s.classList.toggle('active',idx===i));
+let panelIndex=0;
+let carTimer=null;
+function destacarServico(i){
   serviceItems.forEach((s,idx)=>s.classList.toggle('active',idx===i));
   dots.forEach((d,idx)=>d.classList.toggle('active',idx===i));
 }
-if(slides.length>1){
-  setInterval(()=>{
-    carIndex=(carIndex+1)%slides.length;
-    goToSlide(carIndex);
-  },4000);
+function mostrarNoPainel(){
+  const item=heroMedia[carIndex];
+  const painel=heroPanels[panelIndex];
+  const imagem=painel.querySelector('.panel-content');
+  heroPanels.forEach(p=>p.classList.remove('exibindo'));
+  imagem.src=item.src;
+  imagem.alt=item.alt;
+  imagem.dataset.chave=item.chave;
+  destacarServico(carIndex);
+  requestAnimationFrame(()=>painel.classList.add('exibindo'));
+  carTimer=setTimeout(ocultarPainel,1850);
 }
-dots.forEach((d,idx)=>d.addEventListener('click',()=>{carIndex=idx;goToSlide(idx);}));
+function ocultarPainel(){
+  heroPanels.forEach(p=>p.classList.remove('exibindo'));
+  carTimer=setTimeout(()=>{
+    carIndex=(carIndex+1)%heroMedia.length;
+    panelIndex=(panelIndex+1)%heroPanels.length;
+    mostrarNoPainel();
+  },450);
+}
+if(heroPanels.length && heroMedia.length){mostrarNoPainel();}
+dots.forEach((d,idx)=>d.addEventListener('click',()=>{
+  clearTimeout(carTimer);
+  heroPanels.forEach(p=>p.classList.remove('exibindo'));
+  carIndex=idx;
+  panelIndex=idx%heroPanels.length;
+  setTimeout(mostrarNoPainel,120);
+}));
 
 // Form submission via FormSubmit.co (100% estático, sem backend)
 const FORM_ENDPOINT='https://segmaf-api.onrender.com/api/orcamento';
@@ -1090,8 +1105,11 @@ atualizarContadores();
     for(const chave in d.cartoes){
       const url=d.cartoes[chave];
       if(!url){continue;}
+      const customUrl='https://segmaf-api.onrender.com'+url;
+      const heroItem=heroMedia.find(item=>item.chave===chave);
+      if(heroItem){heroItem.src=customUrl;}
       document.querySelectorAll('img[data-chave="'+chave+'"]').forEach(img=>{
-        img.src='https://segmaf-api.onrender.com'+url;
+        img.src=customUrl;
       });
     }
   }catch(e){}
