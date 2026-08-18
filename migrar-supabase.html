@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="robots" content="noindex,nofollow" />
+<title>Migração temporária - SEGMAF</title>
+<style>
+body{font-family:Segoe UI,system-ui,sans-serif;background:#f4f6f9;color:#0A2540;margin:0;padding:30px}.box{max-width:720px;margin:auto;background:#fff;padding:28px;border-radius:12px;box-shadow:0 3px 20px #0a25401a}label{display:block;font-weight:600;margin:14px 0 6px}input{width:100%;box-sizing:border-box;padding:11px;border:1px solid #c9d3df;border-radius:8px}button{margin-top:18px;background:#F26522;color:#fff;border:0;border-radius:8px;padding:12px 20px;font-weight:700;cursor:pointer}button:disabled{opacity:.55}pre{white-space:pre-wrap;background:#0A2540;color:#dce8f2;padding:16px;border-radius:8px;min-height:120px;margin-top:20px}.aviso{color:#b45309;background:#fff7ed;padding:12px;border-radius:8px}
+</style>
+</head>
+<body><div class="box">
+<h1>Migração Neon/Render → Supabase</h1>
+<p class="aviso">Ferramenta temporária. Remover do site após a migração.</p>
+<label for="senhaNova">Senha do administrador no Supabase</label><input id="senhaNova" type="password" autocomplete="current-password" />
+<label for="tokenAntigo">Token administrativo antigo do Render</label><input id="tokenAntigo" type="password" autocomplete="off" />
+<button id="migrar">Migrar todos os dados</button><pre id="log">Aguardando...</pre>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
+<script src="supabase-client.js"></script>
+<script>
+(function(){
+  'use strict';
+  const API_ANTIGA='https://segmaf-api.onrender.com';
+  const db=window.SEGMAF.db;
+  const logEl=document.getElementById('log');
+  const botao=document.getElementById('migrar');
+  const registrar=t=>{logEl.textContent+=(logEl.textContent?'\n':'')+t;logEl.scrollTop=logEl.scrollHeight;};
+  const authHeaders=token=>({Authorization:'Bearer '+token});
+  const primeiro=d=>Array.isArray(d)?d[0]:d;
+
+  async function jsonAntigo(caminho,token){
+    const r=await fetch(API_ANTIGA+caminho,{headers:authHeaders(token)});
+    if(!r.ok)throw new Error('API antiga '+caminho+': HTTP '+r.status);
+    return r.json();
+  }
+
+  async function migrarAnexos(antigas,novosIds,token){
+    let total=0;
+    for(let i=0;i<antigas.length;i++){
+      for(const anexo of (antigas[i].anexos||[])){
+        const existente=await db.from('anexos').select('id,storage_path').eq('legacy_id',anexo.id).maybeSingle();
+        if(existente.error)throw existente.error;
+        let caminho=existente.data&&existente.data.storage_path;
+        if(!caminho){
+          const reserva=await db.rpc('admin_reservar_anexo_importado',{
+            p_solicitacao_id:novosIds[i],p_legacy_id:anexo.id,p_nome_arquivo:anexo.nome,
+            p_mime_type:anexo.mime||'application/octet-stream',p_tamanho:anexo.tamanho
+          });
+          if(reserva.error)throw reserva.error;
+          caminho=primeiro(reserva.data).storage_path;
+        }
+        const existeObjeto=await db.storage.from('anexos').download(caminho);
+        if(existeObjeto.error){
+          const resposta=await fetch(API_ANTIGA+'/api/admin/anexo/'+anexo.id,{headers:authHeaders(token)});
+          if(!resposta.ok)throw new Error('Falha ao baixar anexo antigo #'+anexo.id);
+          const blob=await resposta.blob();
+          const envio=await db.storage.from('anexos').upload(caminho,blob,{upsert:false,contentType:anexo.mime||blob.type});
+          if(envio.error)throw envio.error;
+        }
+        total++;
+      }
+    }
+    return total;
+  }
+
+  async function migrarImagens(token){
+    const antiga=await jsonAntigo('/api/admin/imagens',token);
+    let total=0;
+    for(const item of (antiga.imagens||[])){
+      if(!item.custom||!item.url)continue;
+      const atual=await db.from('imagens').select('storage_path,nome,mime,tamanho').eq('chave',item.chave).maybeSingle();
+      if(atual.error)throw atual.error;
+      if(atual.data&&atual.data.storage_path&&Number(atual.data.tamanho)===Number(item.tamanho)&&atual.data.nome===item.nome){total++;continue;}
+      const resposta=await fetch(API_ANTIGA+item.url);
+      if(!resposta.ok)throw new Error('Falha ao baixar imagem '+item.chave);
+      const blob=await resposta.blob();
+      const ext=(item.mime||blob.type)==='image/jpeg'?'jpg':((item.mime||blob.type).split('/')[1]||'png');
+      const caminho=item.chave+'/migrado-'+Date.now()+'.'+ext;
+      const envio=await db.storage.from('imagens-cards').upload(caminho,blob,{upsert:false,contentType:item.mime||blob.type});
+      if(envio.error)throw envio.error;
+      let backup=null;
+      if(atual.data&&atual.data.storage_path){
+        const baixado=await db.storage.from('imagens-cards').download(atual.data.storage_path);
+        if(!baixado.error)backup=baixado.data;
+        const removido=await db.storage.from('imagens-cards').remove([atual.data.storage_path]);
+        if(removido.error){await db.storage.from('imagens-cards').remove([caminho]);throw removido.error;}
+      }
+      const meta=await db.from('imagens').upsert({chave:item.chave,storage_path:caminho,nome:item.nome||('imagem.'+ext),mime:item.mime||blob.type,tamanho:item.tamanho||blob.size},{onConflict:'chave'});
+      if(meta.error){
+        await db.storage.from('imagens-cards').remove([caminho]);
+        if(backup&&atual.data.storage_path)await db.storage.from('imagens-cards').upload(atual.data.storage_path,backup,{upsert:false,contentType:atual.data.mime||backup.type});
+        throw meta.error;
+      }
+      total++;
+    }
+    return total;
+  }
+
+  botao.addEventListener('click',async()=>{
+    const senha=document.getElementById('senhaNova').value;
+    const token=document.getElementById('tokenAntigo').value.trim();
+    if(!senha||!token){alert('Informe as duas credenciais.');return;}
+    botao.disabled=true;logEl.textContent='';
+    try{
+      registrar('1/6 Autenticando no Supabase...');
+      const login=await db.auth.signInWithPassword({email:'segmaf@outlook.com',password:senha});
+      if(login.error)throw login.error;
+      registrar('2/6 Lendo solicitações atuais...');
+      const antiga=await jsonAntigo('/api/admin/solicitacoes',token);
+      const registros=(antiga.solicitacoes||[]).map(s=>({...s,legacy_id:s.id}));
+      registrar('3/6 Importando '+registros.length+' solicitações...');
+      const ids=[];
+      for(let inicio=0;inicio<registros.length;inicio+=500){
+        const lote=registros.slice(inicio,inicio+500);
+        const importacao=await db.rpc('admin_importar_solicitacoes',{p_registros:lote});
+        if(importacao.error)throw importacao.error;
+        ids.push(...(importacao.data||[]));
+      }
+      registrar('4/6 Migrando anexos...');
+      const anexos=await migrarAnexos(antiga.solicitacoes||[],ids,token);
+      registrar('5/6 Migrando contador e imagens...');
+      const contadores=await fetch(API_ANTIGA+'/api/contadores').then(r=>r.json());
+      const contador=await db.rpc('admin_definir_atendidos',{p_valor:Number(contadores.atendidos||0)});
+      if(contador.error)throw contador.error;
+      const imagens=await migrarImagens(token);
+      registrar('6/6 Concluído: '+registros.length+' solicitações, '+anexos+' anexos, '+imagens+' imagens.');
+      registrar('Agora valide o admin Supabase antes de remover o Render.');
+    }catch(e){registrar('ERRO: '+(e.message||e));}
+    finally{botao.disabled=false;}
+  });
+})();
+</script>
+</body></html>
