@@ -7,6 +7,9 @@
   var IMAGENS_BUCKET = 'imagens-cards';
   var MAX_ANEXOS = 3;
   var MAX_TOTAL_BYTES = 5 * 1024 * 1024;
+  var TURNSTILE_SITE_KEY = '0x4AAAAAAETYJiUUal_v1b6J';
+  var turnstilePromise = null;
+  var formCaptchaWidget = null;
 
   if (!global.supabase || typeof global.supabase.createClient !== 'function') {
     throw new Error('Supabase JS v2 deve ser carregado antes de supabase-client.js.');
@@ -95,12 +98,76 @@
     return arquivos;
   }
 
-  async function garantirSessao() {
+  function carregarTurnstile() {
+    if (global.turnstile) return Promise.resolve(global.turnstile);
+    if (turnstilePromise) return turnstilePromise;
+    turnstilePromise = new Promise(function (resolve, reject) {
+      var script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      script.async = true;
+      script.defer = true;
+      script.onload = function () {
+        if (global.turnstile) resolve(global.turnstile);
+        else reject(new Error('Não foi possível carregar a verificação de segurança.'));
+      };
+      script.onerror = function () { reject(new Error('Não foi possível carregar a verificação de segurança.')); };
+      document.head.appendChild(script);
+    });
+    return turnstilePromise;
+  }
+
+  async function renderizarCaptcha(container, action) {
+    var alvo = typeof container === 'string' ? document.querySelector(container) : container;
+    if (!alvo) throw new Error('Área de verificação de segurança não encontrada.');
+    var turnstile = await carregarTurnstile();
+    return turnstile.render(alvo, {
+      sitekey: TURNSTILE_SITE_KEY,
+      theme: 'auto',
+      size: 'flexible',
+      appearance: 'interaction-only',
+      action: action || 'formulario'
+    });
+  }
+
+  function obterCaptchaToken(widgetId) {
+    if (widgetId == null || !global.turnstile) return '';
+    return global.turnstile.getResponse(widgetId) || '';
+  }
+
+  function resetarCaptcha(widgetId) {
+    if (widgetId != null && global.turnstile) global.turnstile.reset(widgetId);
+  }
+
+  async function prepararCaptchaFormulario() {
+    var form = document.getElementById('contactForm');
+    if (!form || document.getElementById('segmafCaptcha')) return;
+    var area = document.createElement('div');
+    area.id = 'segmafCaptcha';
+    area.style.gridColumn = '1 / -1';
+    area.style.width = '100%';
+    area.style.minHeight = '65px';
+    var botao = form.querySelector('button[type="submit"]');
+    form.insertBefore(area, botao || null);
+    try {
+      formCaptchaWidget = await renderizarCaptcha(area, 'orcamento');
+    } catch (erro) {
+      area.textContent = erro.message;
+      area.style.color = '#b91c1c';
+      area.style.fontSize = '.85rem';
+    }
+  }
+
+  async function garantirSessao(captchaToken) {
     var resultado = await db.auth.getSession();
     if (resultado.error) throw resultado.error;
     if (resultado.data.session) return resultado.data.session;
 
-    resultado = await db.auth.signInAnonymously();
+    if (!captchaToken) throw new Error('Confirme a verificação de segurança antes de enviar.');
+    try {
+      resultado = await db.auth.signInAnonymously({ options: { captchaToken: captchaToken } });
+    } finally {
+      resetarCaptcha(formCaptchaWidget);
+    }
     if (resultado.error) throw resultado.error;
     if (!resultado.data.session) {
       throw new Error('Não foi possível iniciar uma sessão segura. Tente novamente.');
@@ -167,7 +234,8 @@
       var campos = validarFormulario(formData);
       var arquivos = validarAnexos(formData);
 
-      await garantirSessao();
+      var captchaToken = obterCaptchaToken(formCaptchaWidget) || texto(formData, 'cf-turnstile-response');
+      await garantirSessao(captchaToken);
       var criacao = await db.rpc('criar_rascunho', {
         p_nome: campos.nome,
         p_email: campos.email,
@@ -247,7 +315,17 @@
     SUPABASE_PUBLISHABLE_KEY: SUPABASE_PUBLISHABLE_KEY,
     ANEXOS_BUCKET: ANEXOS_BUCKET,
     IMAGENS_BUCKET: IMAGENS_BUCKET,
+    TURNSTILE_SITE_KEY: TURNSTILE_SITE_KEY,
+    renderizarCaptcha: renderizarCaptcha,
+    obterCaptchaToken: obterCaptchaToken,
+    resetarCaptcha: resetarCaptcha,
     MAX_ANEXOS: MAX_ANEXOS,
     MAX_TOTAL_BYTES: MAX_TOTAL_BYTES
   });
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', prepararCaptchaFormulario, { once: true });
+  } else {
+    prepararCaptchaFormulario();
+  }
 })(window);

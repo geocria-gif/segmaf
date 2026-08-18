@@ -22,6 +22,7 @@
   let client;
   let solicitacoes = [];
   let galeriaTimer = null;
+  let adminCaptchaWidget = null;
 
   function el(id) {
     return document.getElementById(id);
@@ -171,11 +172,17 @@
       mensagem('msgLogin', 'Digite a senha.', 'erro');
       return;
     }
+    const captchaToken = window.SEGMAF.obterCaptchaToken(adminCaptchaWidget);
+    if (!captchaToken) {
+      mensagem('msgLogin', 'Confirme a verificação de segurança.', 'erro');
+      return;
+    }
     mensagem('msgLogin', 'Verificando...');
     try {
       const resposta = await supabase().auth.signInWithPassword({
         email: ADMIN_EMAIL,
-        password: senha
+        password: senha,
+        options: { captchaToken: captchaToken }
       });
       if (resposta.error) throw resposta.error;
       el('campoSenha').value = '';
@@ -183,6 +190,8 @@
       await Promise.all([carregar(), carregarImagens()]);
     } catch (error) {
       mensagem('msgLogin', /invalid login/i.test(error.message || '') ? 'Senha incorreta.' : erroTexto(error, 'Não foi possível entrar.'), 'erro');
+    } finally {
+      window.SEGMAF.resetarCaptcha(adminCaptchaWidget);
     }
   }
 
@@ -567,6 +576,8 @@
       el('lbFechar').onclick = fecharLightbox;
       el('lightbox').onclick = function (evento) { if (evento.target === el('lightbox')) fecharLightbox(); };
       document.addEventListener('keydown', function (evento) { if (evento.key === 'Escape') fecharLightbox(); });
+
+      adminCaptchaWidget = await window.SEGMAF.renderizarCaptcha(el('captchaAdmin'), 'admin_login');
 
       iniciarGaleria();
       const sessao = await supabase().auth.getSession();
