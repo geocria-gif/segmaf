@@ -873,7 +873,7 @@ footer{
           </div>
         </div>
       </div>
-      <form class="contact-form fade-up" id="contactForm" action="/submit" method="POST" enctype="multipart/form-data">
+      <form class="contact-form fade-up" id="contactForm" method="POST" enctype="multipart/form-data">
         <input type="text" name="nome" placeholder="Nome" required />
         <input type="email" name="email" placeholder="E-mail" required />
         <input type="tel" name="telefone" placeholder="Telefone" />
@@ -950,6 +950,8 @@ footer{
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
+<script src="supabase-client.js"></script>
 <script>
 // Mobile nav toggle
 const toggle = document.getElementById('navToggle');
@@ -1048,7 +1050,6 @@ dots.forEach((d,idx)=>d.addEventListener('click',()=>{
 }));
 
 // Form submission via FormSubmit.co (100% estático, sem backend)
-const FORM_ENDPOINT='https://segmaf-api.onrender.com/api/orcamento';
 const fileInput=document.getElementById('fileInput');
 const fileInfo=document.getElementById('fileInfo');
 if(fileInput){fileInput.addEventListener('change',function(){
@@ -1067,8 +1068,7 @@ document.getElementById('contactForm').addEventListener('submit',async function(
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Enviando...';
   msg.className='';msg.style.display='none';
   try{
-    const res=await fetch(FORM_ENDPOINT,{method:'POST',body:f});
-    const data=await res.json();
+    const data=await window.SEGMAF.enviarOrcamento(f);
     if(data.success){
       msg.className='success';msg.textContent='Recebemos sua solicita\u00E7\u00E3o! Entraremos em contato em breve.';
       this.reset();if(fileInfo)fileInfo.textContent='Nenhum arquivo selecionado';
@@ -1085,9 +1085,7 @@ document.getElementById('contactForm').addEventListener('submit',async function(
 // Contadores dinamicos dos orcamentos (Quem Somos)
 async function atualizarContadores(){
   try{
-    const res=await fetch('https://segmaf-api.onrender.com/api/contadores');
-    const d=await res.json();
-    if(!d.success){return;}
+    const d=await window.SEGMAF.obterContadores();
     const elAt=document.getElementById('contadorAtendidos');
     const elNl=document.getElementById('contadorNaoLidos');
     if(elAt){elAt.textContent=d.atendidos;}
@@ -1099,13 +1097,11 @@ atualizarContadores();
 // Imagens personalizadas dos cards (gerenciadas no painel admin)
 (async function aplicarImagensCards(){
   try{
-    const res=await fetch('https://segmaf-api.onrender.com/api/cartoes');
-    const d=await res.json();
-    if(!d.success){return;}
-    for(const chave in d.cartoes){
-      const url=d.cartoes[chave];
+    const imagens=await window.SEGMAF.obterImagensCards();
+    for(const chave in imagens){
+      const url=imagens[chave];
       if(!url){continue;}
-      const customUrl='https://segmaf-api.onrender.com'+url;
+      const customUrl=url;
       const heroItem=heroMedia.find(item=>item.chave===chave);
       if(heroItem){heroItem.src=customUrl;}
       document.querySelectorAll('img[data-chave="'+chave+'"]').forEach(img=>{

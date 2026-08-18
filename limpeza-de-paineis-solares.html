@@ -709,6 +709,8 @@ footer{
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
+<script src="supabase-client.js"></script>
 <script>
 const toggle=document.getElementById('navToggle');
 const links=document.getElementById('navLinks');
@@ -718,7 +720,6 @@ window.addEventListener('scroll',()=>{document.getElementById('navbar').classLis
 const toTop=document.getElementById('toTop');
 window.addEventListener('scroll',()=>{toTop.classList.toggle('show',window.scrollY>600)});
 toTop.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
-const FORM_ENDPOINT='https://segmaf-api.onrender.com/api/orcamento';
 const fileInput=document.getElementById('fileInput');
 const fileInfo=document.getElementById('fileInfo');
 if(fileInput){fileInput.addEventListener('change',function(){
@@ -738,8 +739,7 @@ if(form){form.addEventListener('submit',async function(e){
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Enviando...';
   msg.className='';msg.style.display='none';
   try{
-    const res=await fetch(FORM_ENDPOINT,{method:'POST',body:f});
-    const data=await res.json();
+    const data=await window.SEGMAF.enviarOrcamento(f);
     if(data.success){msg.className='success';msg.textContent='Recebemos sua solicitação! Entraremos em contato em breve.';this.reset();if(fileInfo)fileInfo.textContent='Nenhum arquivo selecionado';}
     else{msg.className='error';msg.textContent=data.message||'Erro ao enviar. Tente novamente.';}
   }catch{msg.className='error';msg.textContent='Erro ao enviar. Verifique sua conexão e tente novamente.';}
