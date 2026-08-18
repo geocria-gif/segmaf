@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex, nofollow" />
-<title>Painel Administrativo — SEGMAF</title>
+<title>Painel Administrativo - SEGMAF</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#f4f6f9;color:#0A2540;min-height:100vh}
@@ -22,433 +22,72 @@ button{cursor:pointer;border:none;border-radius:8px;font-weight:600}
 .btn-danger{background:#dc2626;color:#fff;padding:6px 12px;font-size:.8rem}
 .btn-outline{background:#fff;color:#0A2540;border:1px solid #c9d3df;padding:8px 16px;font-size:.85rem}
 .btn-outline:hover{background:#eef2f7}
-.topo-acoes{display:flex;gap:10px;align-items:center;margin:18px 0;flex-wrap:wrap}
-.mensagem{margin-top:12px;font-size:.9rem}
-.mensagem.erro{color:#dc2626}
-.mensagem.ok{color:#15803d}
+.mensagem{margin-top:12px;font-size:.9rem}.mensagem.erro{color:#dc2626}.mensagem.ok{color:#15803d}
 table{width:100%;border-collapse:collapse;font-size:.85rem}
 th,td{text-align:left;padding:10px 12px;border-bottom:1px solid #e9edf3;vertical-align:top}
-th{background:#0A2540;color:#fff;font-weight:600;white-space:nowrap}
-tr:hover td{background:#f7fafc}
-td.nome{font-weight:600}
-.det-tags{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0}
-.tag{background:#eef2f7;color:#0A2540;border-radius:20px;padding:2px 10px;font-size:.75rem}
-.tag.assunto{background:#fde8db;color:#b0450e}
-.mensagem-texto{max-width:340px;white-space:pre-wrap;color:#475569}
-.badge-total{background:#F26522;color:#fff;border-radius:20px;padding:2px 10px;font-size:.8rem}
-.centro{max-width:420px;margin:10vh auto}
-.rodape{text-align:center;font-size:.75rem;color:#94a3b8;margin:32px 0}
-.vazio{color:#64748b;text-align:center;padding:32px;font-size:.9rem}
-.acoes-linha{display:flex;gap:8px;justify-content:flex-end}
+th{background:#0A2540;color:#fff;font-weight:600;white-space:nowrap}tr:hover td{background:#f7fafc}
+td.nome{font-weight:600}.tag{background:#eef2f7;color:#0A2540;border-radius:20px;padding:2px 10px;font-size:.75rem}
+.mensagem-texto{max-width:340px;white-space:pre-wrap;color:#475569}.badge-total{background:#F26522;color:#fff;border-radius:20px;padding:2px 10px;font-size:.8rem}
+.centro{max-width:420px;margin:10vh auto}.rodape{text-align:center;font-size:.75rem;color:#94a3b8;margin:32px 0}
+.vazio{color:#64748b;text-align:center;padding:32px;font-size:.9rem}.acoes-linha{display:flex;gap:8px;justify-content:flex-end}
 .img-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-top:8px}
 .img-item{border:1px solid #e3e8ef;border-radius:10px;padding:12px;background:#fafbfc}
 .img-item img{width:100%;height:110px;object-fit:cover;border-radius:8px;background:#eef2f7}
-.img-item .nome-img{font-weight:600;font-size:.85rem;margin:8px 0 2px;color:#0A2540}
-.img-item .info-img{font-size:.75rem;color:#64748b;margin-bottom:8px}
-.img-item .acoes-img{display:flex;gap:8px;flex-wrap:wrap}
-.verde{color:#15803d;font-weight:600}
-.galeria-wrap{margin-top:24px}
-.galeria-titulo{font-size:1.05rem;font-weight:700;color:#F26522;margin-bottom:12px;text-align:center;letter-spacing:1px}
-.carrossel{position:relative;max-width:820px;margin:0 auto}
-.carrossel-viewport{overflow:hidden;border-radius:10px;background:#0A2540}
-.carrossel-track{display:flex;transition:transform .45s ease}
-.carrossel-slide{min-width:100%;height:430px;display:flex;align-items:center;justify-content:center;background:#0A2540}
+.img-item .nome-img{font-weight:600;font-size:.85rem;margin:8px 0 2px;color:#0A2540}.img-item .info-img{font-size:.75rem;color:#64748b;margin-bottom:8px}
+.img-item .acoes-img{display:flex;gap:8px;flex-wrap:wrap}.verde{color:#15803d;font-weight:600}
+.galeria-wrap{margin-top:24px}.galeria-titulo{font-size:1.05rem;font-weight:700;color:#F26522;margin-bottom:12px;text-align:center;letter-spacing:1px}
+.carrossel{position:relative;max-width:820px;margin:0 auto}.carrossel-viewport{overflow:hidden;border-radius:10px;background:#0A2540}
+.carrossel-track{display:flex;transition:transform .45s ease}.carrossel-slide{min-width:100%;height:430px;display:flex;align-items:center;justify-content:center;background:#0A2540}
 .carrossel-slide img{width:100%;height:100%;object-fit:contain;display:block;cursor:zoom-in}
 .carrossel-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(10,37,64,.55);color:#fff;border:none;width:40px;height:40px;border-radius:50%;font-size:1.2rem;cursor:pointer;z-index:2}
-.carrossel-btn:hover{background:#F26522}
-.carrossel-btn.ant{left:10px}
-.carrossel-btn.prox{right:10px}
-.carrossel-dots{text-align:center;margin-top:10px}
-.carrossel-dots .dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#c9d3df;margin:0 4px;cursor:pointer;border:none;padding:0}
-.carrossel-dots .dot.ativo{background:#F26522}
-.carrossel-contador{text-align:center;font-size:.8rem;color:#64748b;margin-top:6px}
-.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:100}
-.lightbox.aberto{display:flex}
-.lightbox img{max-width:92vw;max-height:92vh;object-fit:contain;border-radius:6px}
-.lightbox-close{position:absolute;top:16px;right:24px;color:#fff;font-size:2rem;cursor:pointer;background:none;border:none}
-@media(max-width:700px){
-  table{font-size:.78rem}
-  th,td{padding:8px}
-  .mensagem-texto{max-width:220px}
-}
+.carrossel-btn:hover{background:#F26522}.carrossel-btn.ant{left:10px}.carrossel-btn.prox{right:10px}
+.carrossel-dots{text-align:center;margin-top:10px}.carrossel-dots .dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#c9d3df;margin:0 4px;cursor:pointer;border:none;padding:0}
+.carrossel-dots .dot.ativo{background:#F26522}.carrossel-contador{text-align:center;font-size:.8rem;color:#64748b;margin-top:6px}
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:100}.lightbox.aberto{display:flex}
+.lightbox img{max-width:92vw;max-height:92vh;object-fit:contain;border-radius:6px}.lightbox-close{position:absolute;top:16px;right:24px;color:#fff;font-size:2rem;cursor:pointer;background:none;border:none}
+@media(max-width:700px){table{font-size:.78rem}th,td{padding:8px}.mensagem-texto{max-width:220px}.carrossel-slide{height:260px}}
 </style>
 </head>
 <body>
-<header>
-  <h1>SEGMAF Solu&ccedil;&otilde;es em Limpeza Ltda</h1>
-  <a href="index.html">&#8592; Ver site</a>
-</header>
-
+<header><h1>SEGMAF Solu&ccedil;&otilde;es em Limpeza Ltda</h1><a href="index.html">&#8592; Ver site</a></header>
 <main>
   <div class="galeria-wrap">
     <div class="galeria-titulo">GALERIA DE FOTOS</div>
     <div class="carrossel">
       <button class="carrossel-btn ant" id="btnAnt" aria-label="Anterior">&#10094;</button>
-      <div class="carrossel-viewport">
-        <div class="carrossel-track" id="trackGaleria"></div>
-      </div>
-      <button class="carrossel-btn prox" id="btnProx" aria-label="Próximo">&#10095;</button>
-      <div class="carrossel-dots" id="dotsGaleria"></div>
-      <div class="carrossel-contador" id="contadorGaleria"></div>
+      <div class="carrossel-viewport"><div class="carrossel-track" id="trackGaleria"></div></div>
+      <button class="carrossel-btn prox" id="btnProx" aria-label="Pr&oacute;ximo">&#10095;</button>
+      <div class="carrossel-dots" id="dotsGaleria"></div><div class="carrossel-contador" id="contadorGaleria"></div>
     </div>
   </div>
-
   <div id="telaLogin" class="card centro">
     <h2 style="font-size:1.1rem;margin-bottom:16px">Entrar no painel</h2>
-    <label for="campoSenha">Senha de acesso</label>
-    <input type="password" id="campoSenha" placeholder="Digite a senha" autocomplete="current-password" />
+    <label for="campoSenha">Senha do usu&aacute;rio segmaf@outlook.com</label>
+    <input type="password" id="campoSenha" placeholder="Digite a senha do Supabase" autocomplete="current-password" />
     <div class="mensagem" id="msgLogin"></div>
-    <div style="margin-top:16px">
-      <button class="btn-primary" id="btnEntrar" style="width:100%">Entrar</button>
-    </div>
+    <div style="margin-top:16px"><button class="btn-primary" id="btnEntrar" style="width:100%">Entrar</button></div>
   </div>
-
   <div id="telaPainel" class="hidden">
     <div class="card" style="padding:16px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-      <div style="font-size:1rem;font-weight:600">
-        Solicita&ccedil;&otilde;es de or&ccedil;amento <span class="badge-total" id="totalBadge">0</span>
-      </div>
+      <div style="font-size:1rem;font-weight:600">Solicita&ccedil;&otilde;es de or&ccedil;amento <span class="badge-total" id="totalBadge">0</span></div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn-outline" id="btnAtualizar">&#8635; Atualizar</button>
-        <button class="btn-outline" id="btnAjustar">&#9998; Ajustar Atendidos</button>
-        <button class="btn-outline" id="btnZerar">&#8634; Zerar Atendidos</button>
-        <button class="btn-outline" id="btnExportar">&#11015; Exportar CSV</button>
-        <button class="btn-outline" id="btnSair">Sair</button>
+        <button class="btn-outline" id="btnAtualizar">&#8635; Atualizar</button><button class="btn-outline" id="btnAjustar">&#9998; Ajustar Atendidos</button>
+        <button class="btn-outline" id="btnZerar">&#8634; Zerar Atendidos</button><button class="btn-outline" id="btnExportar">&#11015; Exportar CSV</button><button class="btn-outline" id="btnSair">Sair</button>
       </div>
     </div>
     <div class="mensagem hidden" id="msgPainel"></div>
-    <div class="card" style="margin-top:16px;overflow-x:auto">
-      <div id="tabela"></div>
-    </div>
+    <div class="card" style="margin-top:16px;overflow-x:auto"><div id="tabela"></div></div>
     <div class="card" style="margin-top:16px">
-      <div style="font-size:1rem;font-weight:600">Imagens dos Cards — In&iacute;cio do Site</div>
-      <p style="font-size:.85rem;color:#64748b;margin:4px 0 8px">
-        Troque as imagens dos cards de servi&ccedil;o da p&aacute;gina inicial (e do carrossel do topo). Envie JPG, PNG ou WebP de at&eacute; 3 MB.
-      </p>
-      <div class="img-grid" id="gradeImagens"></div>
-      <div class="mensagem" id="msgImagens"></div>
+      <div style="font-size:1rem;font-weight:600">Imagens dos Cards - In&iacute;cio do Site</div>
+      <p style="font-size:.85rem;color:#64748b;margin:4px 0 8px">Troque as imagens dos cards e do carrossel. Envie JPG, PNG ou WebP de at&eacute; 3 MB.</p>
+      <div class="img-grid" id="gradeImagens"></div><div class="mensagem" id="msgImagens"></div>
     </div>
   </div>
 </main>
-
 <p class="rodape">SEGMAF Solu&ccedil;&otilde;es em Limpeza LTDA &mdash; CNPJ 54.851.014/0001-48</p>
-
-<div class="lightbox" id="lightbox">
-  <button class="lightbox-close" id="lbFechar">&times;</button>
-  <img id="lbImagem" alt="Foto da galeria" />
-</div>
-
-<script>
-const API = 'https://segmaf-api.onrender.com';
-const salvar = 'segmaf_admin_token';
-let token = localStorage.getItem(salvar) || '';
-
-const telaLogin = document.getElementById('telaLogin');
-const telaPainel = document.getElementById('telaPainel');
-const campoSenha = document.getElementById('campoSenha');
-const msgLogin = document.getElementById('msgLogin');
-const msgPainel = document.getElementById('msgPainel');
-
-function mostrarPainel(){
-  telaLogin.classList.add('hidden');
-  telaPainel.classList.remove('hidden');
-}
-function mostrarLogin(){
-  telaPainel.classList.add('hidden');
-  telaLogin.classList.remove('hidden');
-}
-
-async function carregar(){
-  msgPainel.classList.add('hidden');
-  try{
-    const res = await fetch(API + '/api/admin/solicitacoes', {headers:{'Authorization':'Bearer ' + token}});
-    const data = await res.json();
-    if(!data.success){
-      if(res.status === 401){ localStorage.removeItem(salvar); token=''; mostrarLogin(); msgLogin.textContent='Senha incorreta.'; msgLogin.className='mensagem erro'; }
-      else{ msgPainel.textContent = data.message || 'Erro ao carregar.'; msgPainel.classList.remove('hidden'); msgPainel.className='mensagem erro'; }
-      return;
-    }
-    renderizar(data.solicitacoes, data.total);
-  }catch(e){
-    msgPainel.textContent = 'Falha de conexão com a API. Verifique se o serviço está no ar.';
-    msgPainel.classList.remove('hidden'); msgPainel.className='mensagem erro';
-  }
-}
-
-function fmtData(iso){
-  if(!iso) return '—';
-  const d = new Date(iso);
-  const p = n => String(n).padStart(2,'0');
-  return p(d.getDate()) + '/' + p(d.getMonth()+1) + '/' + d.getFullYear() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
-}
-
-function renderizar(itens, total){
-  document.getElementById('totalBadge').textContent = total;
-  const tabela = document.getElementById('tabela');
-  if(!itens.length){
-    tabela.innerHTML = '<div class="vazio">Nenhuma solicitação recebida ainda.</div>';
-    return;
-  }
-  const linhas = itens.map(s => `
-    <tr>
-      <td class="nome">${esc(s.nome)}</td>
-      <td>${esc(s.email)}<br/><span class="tag">${esc(s.telefone || 'sem telefone')}</span></td>
-      <td>${esc(s.assunto)}<br/><small>${fmtData(s.criado_em)}</small>
-        ${(s.anexos||[]).map(a => `<br/><a href="#" onclick="baixarAnexo(${a.id});return false;" style="color:#F26522;font-size:.8rem">&#128206; ${esc(a.nome)}</a>`).join('')}</td>
-      <td><span class="tag">${esc(s.cidade || '—')}</span><br/><small>${esc(s.endereco || '')}</small>
-        ${s.latitude ? `<br/><small>${s.latitude}, ${s.longitude}</small>` : ''}</td>
-      <td class="mensagem-texto">${esc(s.mensagem)}</td>
-      <td style="white-space:nowrap">
-        <label style="display:block;font-weight:600;font-size:.8rem;cursor:pointer;padding:2px 0"><input type="checkbox" onchange="marcar(${s.id},'lido',this.checked)" ${s.lido?'checked':''}> Lido</label>
-        <label style="display:block;font-weight:600;font-size:.8rem;cursor:pointer;padding:2px 0"><input type="checkbox" onchange="marcar(${s.id},'atendido',this.checked)" ${s.atendido?'checked':''}> Atendido</label>
-      </td>
-      <td><div class="acoes-linha">
-        <button class="btn-outline" onclick="abrirWhats('https://wa.me/55${String(s.telefone||'').replace(/\D/g,'')}')">Whats</button>
-        <button class="btn-danger" onclick="excluir(${s.id})">Excluir</button>
-      </div></td>
-    </tr>`).join('');
-  tabela.innerHTML = '<table><thead><tr><th>Nome</th><th>Contato</th><th>Assunto</th><th>Localização</th><th>Mensagem</th><th>Status</th><th>Ações</th></tr></thead><tbody>' + linhas + '</tbody></table>';
-}
-
-function esc(t){ return String(t == null ? '' : t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-function abrirWhats(url){
-  if(url === 'https://wa.me/55'){ alert('Sem telefone informado.'); return; }
-  window.open(url, '_blank');
-}
-
-async function baixarAnexo(id){
-  const res = await fetch(API + '/api/admin/anexo/' + id, {headers:{'Authorization':'Bearer ' + token}});
-  if(!res.ok){ alert('Erro ao baixar o anexo.'); return; }
-  const blob = await res.blob();
-  let nome = 'anexo';
-  const nomeHdr = res.headers.get('X-Anexo-Nome');
-  if(nomeHdr){ try{ nome = decodeURIComponent(nomeHdr); }catch(e){ nome = nomeHdr; } }
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = nome;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-async function marcar(id, campo, valor){
-  const res = await fetch(API + '/api/admin/solicitacoes/' + id, {
-    method:'PATCH',
-    headers:{'Authorization':'Bearer ' + token, 'Content-Type':'application/json'},
-    body: JSON.stringify({[campo]: valor})
-  });
-  const data = await res.json();
-  if(!data.success){ alert(data.message || 'Erro ao atualizar.'); carregar(); }
-}
-
-async function excluir(id){
-  if(!confirm('Excluir esta solicitação?')) return;
-  const res = await fetch(API + '/api/admin/solicitacoes/' + id, {method:'DELETE', headers:{'Authorization':'Bearer ' + token}});
-  const data = await res.json();
-  if(data.success){ carregar(); }
-  else{ alert(data.message || 'Erro ao excluir.'); }
-}
-
-function exportarCSV(itens){
-  const cab = 'id;criado_em;nome;email;telefone;cidade;endereco;latitude;longitude;assunto;mensagem';
-  const linhas = itens.map(s =>
-    [s.id, s.criado_em, s.nome, s.email, s.telefone, s.cidade, s.endereco, s.latitude, s.longitude, s.assunto, s.mensagem]
-      .map(v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(';')
-  );
-  const blob = new Blob(['\ufeff' + [cab, ...linhas].join('\r\n')], {type:'text/csv;charset=utf-8'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'solicitacoes-segmaf.csv';
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-document.getElementById('btnEntrar').addEventListener('click', async () => {
-  const senha = campoSenha.value.trim();
-  if(!senha){ msgLogin.textContent = 'Digite a senha.'; msgLogin.className='mensagem erro'; return; }
-  msgLogin.textContent = 'Verificando...'; msgLogin.className='mensagem';
-  try{
-    const res = await fetch(API + '/api/admin/solicitacoes', {headers:{'Authorization':'Bearer ' + senha}});
-    const data = await res.json();
-    if(data.success){
-      token = senha;
-      localStorage.setItem(salvar, token);
-      mostrarPainel(); carregar(); carregarImagens();
-    }else{
-      msgLogin.textContent = 'Senha incorreta.'; msgLogin.className='mensagem erro';
-    }
-  }catch(e){
-    msgLogin.textContent = 'Falha de conexão com a API.'; msgLogin.className='mensagem erro';
-  }
-});
-campoSenha.addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('btnEntrar').click(); });
-document.getElementById('btnAtualizar').addEventListener('click', carregar);
-document.getElementById('btnAjustar').addEventListener('click', async () => {
-  if(!confirm('Sincronizar o contador com o número de orçamentos marcados como Atendido no banco de dados?')) return;
-  try{
-    const res = await fetch(API + '/api/admin/contador/atendidos/recalcular', {
-      method:'POST',
-      headers:{'Authorization':'Bearer ' + token}
-    });
-    const data = await res.json();
-    if(data.success){ alert('Contador ajustado a partir do banco: o site agora mostra ' + data.atendidos + ' orçamentos atendidos.'); carregar(); }
-    else{ alert(data.message || 'Erro ao ajustar o contador.'); }
-  }catch(e){ alert('Falha de conexão com a API.'); }
-});
-document.getElementById('btnZerar').addEventListener('click', async () => {
-  if(!confirm('Zerar o contador de orçamentos atendidos? O site passará a mostrar 0.')) return;
-  const res = await fetch(API + '/api/admin/contador/atendidos', {
-    method:'PUT',
-    headers:{'Authorization':'Bearer ' + token, 'Content-Type':'application/json'},
-    body: JSON.stringify({valor: 0})
-  });
-  const data = await res.json();
-  if(data.success){ alert('Contador zerado: o site agora mostra 0 orçamentos atendidos.'); carregar(); }
-  else{ alert(data.message || 'Erro ao zerar o contador.'); }
-});
-document.getElementById('btnSair').addEventListener('click', () => { localStorage.removeItem(salvar); token=''; mostrarLogin(); });
-document.getElementById('btnExportar').addEventListener('click', async () => {
-  const res = await fetch(API + '/api/admin/solicitacoes', {headers:{'Authorization':'Bearer ' + token}});
-  const data = await res.json();
-  if(data.success){ exportarCSV(data.solicitacoes); }
-});
-
-const CARD_LABELS = {
-  'limpeza-paineis-solares':'Limpeza de Painéis Solares',
-  'limpeza-pos-obras':'Limpeza Pós Obras',
-  'capina-quimica-usina-solar':'Capina Química em Usinas Solares',
-  'capina-corporativa':'Capina Corporativa',
-  'rocagem-usina-solar':'Roçagem em Usinas Solares',
-  'pulverizacao-area-irrigada':'Pulverização em Áreas Irrigadas',
-  'captura-de-abelhas':'Captura de Abelhas',
-  'limpeza-cercamento-aceiros':'Limpeza de Cercamento e Aceiros'
-};
-
-async function carregarImagens(){
-  const g = document.getElementById('gradeImagens');
-  const msg = document.getElementById('msgImagens');
-  msg.classList.add('hidden');
-  g.innerHTML = '<div class="vazio">Carregando imagens...</div>';
-  try{
-    const res = await fetch(API + '/api/admin/imagens', {headers:{'Authorization':'Bearer ' + token}});
-    const data = await res.json();
-    if(!data.success){ throw new Error(data.message || 'Erro ao carregar.'); }
-    g.innerHTML = data.imagens.map(img => {
-      const origem = img.custom ? '<span class="verde">Personalizada</span>' : 'Padrão do site';
-      const dataInfo = img.custom ? (' · ' + (img.atualizada_em ? fmtData(img.atualizada_em) : '')) : '';
-      const src = img.custom ? (API + img.url) : (img.chave + '.png');
-      const botoes = '<button class="btn-outline" onclick="enviarImagem(\'' + img.chave + '\')">Trocar imagem</button>' +
-        (img.custom ? '<button class="btn-danger" onclick="restaurarImagem(\'' + img.chave + '\')">Restaurar padrão</button>' : '');
-      return '<div class="img-item">' +
-        '<img src="' + src + '" alt="' + esc(CARD_LABELS[img.chave]) + '" loading="lazy" />' +
-        '<div class="nome-img">' + esc(CARD_LABELS[img.chave]) + '</div>' +
-        '<div class="info-img">' + origem + dataInfo + '</div>' +
-        '<div class="acoes-img">' + botoes + '</div>' +
-        '<input type="file" accept="image/jpeg,image/png,image/webp" id="arquivo-' + img.chave + '" style="display:none" onchange="uploadImagem(\'' + img.chave + '\', this)" />' +
-      '</div>';
-    }).join('');
-  }catch(e){
-    g.innerHTML = '<div class="vazio">Não foi possível carregar as imagens. Verifique a conexão com a API.</div>';
-  }
-}
-
-function enviarImagem(chave){
-  document.getElementById('arquivo-' + chave).click();
-}
-
-async function uploadImagem(chave, input){
-  const arq = input.files[0];
-  if(!arq) return;
-  if(arq.size > 3*1024*1024){ alert('A imagem precisa ter até 3 MB.'); input.value=''; return; }
-  const fd = new FormData();
-  fd.append('arquivo', arq);
-  try{
-    const res = await fetch(API + '/api/admin/imagens/' + chave, {method:'PUT', headers:{'Authorization':'Bearer ' + token}, body: fd});
-    const data = await res.json();
-    if(data.success){ alert('Imagem atualizada! O site já deve exibi-la em segundos.'); carregarImagens(); }
-    else{ alert(data.message || 'Erro ao enviar a imagem.'); }
-  }catch(e){ alert('Falha de conexão com a API.'); }
-  input.value='';
-}
-
-async function restaurarImagem(chave){
-  if(!confirm('Restaurar a imagem padrão do site?')) return;
-  try{
-    const res = await fetch(API + '/api/admin/imagens/' + chave, {method:'DELETE', headers:{'Authorization':'Bearer ' + token}});
-    const data = await res.json();
-    if(data.success){ alert('Imagem padrão restaurada.'); carregarImagens(); }
-    else{ alert(data.message || 'Erro ao restaurar.'); }
-  }catch(e){ alert('Falha de conexão com a API.'); }
-}
-
-if(token){
-  mostrarPainel();
-  carregar();
-  carregarImagens();
-}
-
-// --- Galeria de fotos (carrossel) ---
-// Lista carregada dinamicamente da pasta Galeria do repositório.
-// Fallback estático caso a API do GitHub esteja indisponível (rate limit/outage).
-const GALERIA_FALLBACK = ['FTO01.jpg','FTO01_3.jpg','FTO11.jpg','FTO11_5.jpg','IMG_AEREA.jpg','Plcas01.jpg','Sol01.jpg','Sol02.jpg','WhatsApp Image 2026-08-06 at 15.11.26 (1).jpeg','WhatsApp Image 2026-08-06 at 15.11.27 (1).jpeg','WhatsApp Image 2026-08-06 at 15.11.27.jpeg','WhatsApp Image 2026-08-06 at 15.11.28 (1).jpeg','WhatsApp Image 2026-08-06 at 15.11.28 (2).jpeg','WhatsApp Image 2026-08-06 at 15.11.28.jpeg','WhatsApp Image 2026-08-06 at 15.11.29 (1).jpeg','WhatsApp Image 2026-08-06 at 15.11.29 (2).jpeg','WhatsApp Image 2026-08-06 at 15.11.29 (3).jpeg','WhatsApp Image 2026-08-06 at 15.11.29.jpeg','WhatsApp Image 2026-08-06 at 15.11.30 (1).jpeg','WhatsApp Image 2026-08-06 at 15.11.30 (2).jpeg','WhatsApp Image 2026-08-06 at 15.11.30.jpeg'];
-
-async function carregarFotosGaleria(){
-  try{
-    const res = await fetch('https://api.github.com/repos/geocria-gif/segmaf/contents/Galeria', {headers:{'Accept':'application/vnd.github+json'}});
-    if(!res.ok) throw new Error('github api ' + res.status);
-    const dados = await res.json();
-    if(Array.isArray(dados)){
-      const fotos = dados
-        .filter(f => f.type === 'file' && /\.(jpe?g|png|webp|gif)$/i.test(f.name))
-        .map(f => f.name);
-      if(fotos.length) return fotos;
-    }
-    throw new Error('lista vazia');
-  }catch(e){
-    return GALERIA_FALLBACK.slice();
-  }
-}
-
-(async function(){
-  const GALERIA_FOTOS = await carregarFotosGaleria();
-  const track = document.getElementById('trackGaleria');
-  const dots = document.getElementById('dotsGaleria');
-  const contador = document.getElementById('contadorGaleria');
-  let idx = 0;
-  let timer = null;
-
-  if(!GALERIA_FOTOS.length){
-    track.innerHTML = '<div class="carrossel-slide"><div style="color:#fff;text-align:center;padding:40px">Nenhuma foto na pasta Galeria.</div></div>';
-    return;
-  }
-
-  track.innerHTML = GALERIA_FOTOS.map(n => '<div class="carrossel-slide"><img src="Galeria/' + encodeURIComponent(n) + '" alt="' + esc(n) + '" onclick="abrirLightbox(\'Galeria/' + encodeURIComponent(n) + '\')" /></div>').join('');
-  dots.innerHTML = GALERIA_FOTOS.map((n, i) => '<button class="dot" data-i="' + i + '" title="' + esc(n) + '"></button>').join('');
-
-  function irPara(i){
-    idx = (i + GALERIA_FOTOS.length) % GALERIA_FOTOS.length;
-    track.style.transform = 'translateX(-' + (idx * 100) + '%)';
-    dots.querySelectorAll('.dot').forEach((d, j) => d.classList.toggle('ativo', j === idx));
-    contador.textContent = (idx + 1) + ' / ' + GALERIA_FOTOS.length;
-  }
-  function iniciar(){ timer = setInterval(() => irPara(idx + 1), 3500); }
-  function pausar(){ clearInterval(timer); timer = null; }
-  function retomar(){ if(!timer) iniciar(); }
-
-  document.getElementById('btnAnt').addEventListener('click', () => { pausar(); irPara(idx - 1); retomar(); });
-  document.getElementById('btnProx').addEventListener('click', () => { pausar(); irPara(idx + 1); retomar(); });
-  dots.addEventListener('click', e => { const b = e.target.closest('.dot'); if(b){ pausar(); irPara(parseInt(b.dataset.i, 10)); retomar(); } });
-
-  irPara(0);
-  iniciar();
-})();
-
-function abrirLightbox(src){
-  document.getElementById('lbImagem').src = src;
-  document.getElementById('lightbox').classList.add('aberto');
-}
-document.getElementById('lbFechar').addEventListener('click', () => document.getElementById('lightbox').classList.remove('aberto'));
-document.getElementById('lightbox').addEventListener('click', e => { if(e.target.id === 'lightbox') document.getElementById('lightbox').classList.remove('aberto'); });
-</script>
+<div class="lightbox" id="lightbox"><button class="lightbox-close" id="lbFechar">&times;</button><img id="lbImagem" alt="Foto da galeria" /></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
+<script src="supabase-client.js"></script>
+<script src="admin-supabase.js"></script>
 </body>
 </html>
