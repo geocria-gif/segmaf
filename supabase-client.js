@@ -150,6 +150,7 @@
     form.insertBefore(area, botao || null);
     try {
       formCaptchaWidget = await renderizarCaptcha(area, 'orcamento');
+      form.addEventListener('reset', function () { resetarCaptcha(formCaptchaWidget); });
     } catch (erro) {
       area.textContent = erro.message;
       area.style.color = '#b91c1c';

@@ -416,9 +416,26 @@ nav.scrolled{background:rgba(10,37,64,.98);box-shadow:0 4px 30px rgba(0,0,0,.3)}
   position:relative;z-index:0;isolation:isolate;width:100%;max-width:900px;margin:0 auto;
   border-radius:16px;overflow:hidden;box-shadow:var(--shadow);
   border:1px solid rgba(255,255,255,.12);
+  background:#fff;
 }
 #mapaAtendimento{width:100%;height:460px;background:#e8e8e8}
 .map-note{text-align:center;margin-top:18px;font-size:.92rem;color:rgba(255,255,255,.6)}
+.map-toolbar{padding:18px;background:#fff;color:var(--azul);border-bottom:1px solid #e8edf2}
+.map-toolbar-title{font-weight:800;font-size:1rem;margin-bottom:5px}
+.map-toolbar-sub{color:#657585;font-size:.8rem;line-height:1.45;margin-bottom:13px}
+.map-search-row{display:flex;gap:9px}
+.map-search-row input{flex:1;min-width:0;padding:12px 14px;border:1px solid #ccd7e0;border-radius:10px;font:inherit;color:var(--azul);outline:none}
+.map-search-row input:focus{border-color:var(--laranja);box-shadow:0 0 0 4px rgba(242,101,34,.1)}
+.map-action{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 15px;border:0;border-radius:10px;font:inherit;font-size:.84rem;font-weight:700;cursor:pointer;transition:var(--transition)}
+.map-action.primary{background:var(--laranja);color:#fff}.map-action.primary:hover{background:var(--laranja-escuro)}
+.map-action.secondary{background:#edf3f7;color:var(--azul)}.map-action.secondary:hover{background:#dfe9ef}
+.map-action:disabled{opacity:.55;cursor:wait}
+.map-options{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:11px;flex-wrap:wrap}
+.map-status{font-size:.8rem;color:#64748b;line-height:1.45;flex:1;min-width:220px}
+.map-status[data-state="loading"]{color:#a95016}.map-status[data-state="success"]{color:#16814a}.map-status[data-state="warning"]{color:#b45309}.map-status[data-state="error"]{color:#b42318}
+.map-continue[hidden]{display:none}.map-continue{white-space:nowrap}
+.map-canvas{position:relative}.map-legend{position:absolute;left:12px;bottom:12px;z-index:500;background:rgba(10,37,64,.9);color:#fff;padding:8px 11px;border-radius:9px;font-size:.72rem;box-shadow:0 3px 12px rgba(0,0,0,.2);pointer-events:none}
+.map-legend span{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--laranja);margin-right:6px}
 
 /* ===== SERVICES ===== */
 .services-grid{
@@ -594,6 +611,9 @@ footer{
   .values-list{grid-template-columns:1fr}
   .about-stats{grid-template-columns:1fr 1fr}
   .footer-grid{grid-template-columns:1fr}
+  #mapaAtendimento{height:360px}
+  .map-toolbar{padding:15px}.map-search-row{flex-direction:column}.map-search-row .map-action{width:100%}
+  .map-options{align-items:stretch}.map-options .map-action{width:100%}
 }
 @media(max-width:480px){
   .btn{padding:12px 24px;font-size:.85rem}
@@ -617,6 +637,7 @@ footer{
   .screen-panel.p2,.screen-panel.p3{width:402px;height:751px;transform:rotate(14deg)}
 }
 </style>
+<link rel="stylesheet" href="form-ui.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 </head>
@@ -828,9 +849,25 @@ footer{
       em um raio de até 200 km pela região Centro Norte da Bahia.
     </p>
     <div class="map-container fade-up">
-      <div id="mapaAtendimento" role="application" aria-label="Mapa da área de atendimento da SEGMAF, com Irecê ao centro e raio de 200 km"></div>
+      <div class="map-toolbar">
+        <div class="map-toolbar-title">Encontre o local do empreendimento</div>
+        <div class="map-toolbar-sub">Pesquise uma rua, cidade ou ponto de referência, use sua localização atual ou clique diretamente no mapa.</div>
+        <div class="map-search-row">
+          <input type="search" id="mapAddressSearch" placeholder="Ex.: Avenida Primeiro de Janeiro, Irecê - BA" aria-label="Buscar endereço no mapa" autocomplete="street-address" />
+          <button type="button" class="map-action primary" id="mapSearchButton">&#128269; Buscar endereço</button>
+        </div>
+        <div class="map-options">
+          <button type="button" class="map-action secondary" id="useMyLocation">&#9673; Usar minha localização</button>
+          <div class="map-status" id="mapStatus" role="status" aria-live="polite">Selecione uma localização para consultar a cobertura.</div>
+          <button type="button" class="map-action primary map-continue" id="mapContinue" hidden>Continuar para orçamento</button>
+        </div>
+      </div>
+      <div class="map-canvas">
+        <div id="mapaAtendimento" role="application" aria-label="Mapa da área de atendimento da SEGMAF, com Irecê ao centro e raio de 200 km"></div>
+        <div class="map-legend"><span></span>Área de atendimento: raio de 200 km</div>
+      </div>
     </div>
-    <p class="map-note fade-up">Navegue pelo mapa e clique na localização do seu empreendimento para consultar a cobertura de atendimento e iniciar sua solicitação de orçamento.</p>
+    <p class="map-note fade-up">A indicação de cobertura é uma estimativa. Projetos fora do raio também podem ser avaliados pela equipe comercial.</p>
   </div>
 </section>
 
@@ -951,6 +988,7 @@ footer{
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
+<script src="form-ui.js"></script>
 <script src="supabase-client.js"></script>
 <script>
 // Mobile nav toggle
@@ -1049,7 +1087,7 @@ dots.forEach((d,idx)=>d.addEventListener('click',()=>{
   setTimeout(mostrarNoPainel,120);
 }));
 
-// Form submission via FormSubmit.co (100% estático, sem backend)
+// Envio do formulário diretamente ao Supabase
 const fileInput=document.getElementById('fileInput');
 const fileInfo=document.getElementById('fileInfo');
 if(fileInput){fileInput.addEventListener('change',function(){
@@ -1116,6 +1154,11 @@ const mapaEl=document.getElementById('mapaAtendimento');
 if(mapaEl && typeof L!=='undefined'){
   const irece=[-11.3039,-41.8567];
   const raio=200000;
+  const buscaInput=document.getElementById('mapAddressSearch');
+  const buscaBtn=document.getElementById('mapSearchButton');
+  const localBtn=document.getElementById('useMyLocation');
+  const statusEl=document.getElementById('mapStatus');
+  const continuarBtn=document.getElementById('mapContinue');
   const mapa=L.map(mapaEl,{scrollWheelZoom:false}).setView(irece,8);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
     maxZoom:18,
@@ -1131,6 +1174,13 @@ if(mapaEl && typeof L!=='undefined'){
   mapa.fitBounds(area.getBounds(),{padding:[40,40]});
   mapaEl.addEventListener('click',()=>mapa.scrollWheelZoom.enable());
   let marcadorLocal=null;
+  let selecaoAtual=0;
+
+  function definirStatus(texto,estado){
+    statusEl.textContent=texto;
+    statusEl.dataset.state=estado||'';
+  }
+
   async function logradouroMaisProximo(lat,lng){
     try{
       const q='[out:json][timeout:15];way(around:2000,'+lat+','+lng+')["highway"];out geom;';
@@ -1149,32 +1199,109 @@ if(mapaEl && typeof L!=='undefined'){
     }catch(err){}
     return '';
   }
-  mapa.on('click',async function(ev){
-    const lat=ev.latlng.lat.toFixed(6);
-    const lng=ev.latlng.lng.toFixed(6);
+
+  async function selecionarLocalizacao(latlng,opcoes){
+    const idSelecao=opcoes&&opcoes.idOperacao?opcoes.idOperacao:++selecaoAtual;
+    if(idSelecao!==selecaoAtual){return;}
+    const lat=latlng.lat.toFixed(6);
+    const lng=latlng.lng.toFixed(6);
     const latInput=document.getElementById('latitude');
     const lngInput=document.getElementById('longitude');
     if(!latInput||!lngInput){return;}
-    if(marcadorLocal){marcadorLocal.setLatLng(ev.latlng);}else{marcadorLocal=L.marker(ev.latlng).addTo(mapa);}
+    if(marcadorLocal){marcadorLocal.setLatLng(latlng);}else{marcadorLocal=L.marker(latlng).addTo(mapa);}
+    if(opcoes&&opcoes.recentralizar){mapa.flyTo(latlng,opcoes.zoom||15,{duration:.8});}
     latInput.value=lat;
     lngInput.value=lng;
+    const distanciaMetros=mapa.distance(L.latLng(irece),latlng);
+    const distanciaKm=Math.round(distanciaMetros/1000);
+    const dentro=distanciaMetros<=raio;
+    definirStatus('Local selecionado. Buscando os dados do endereço...','loading');
+    continuarBtn.hidden=true;
     let cidade='', logradouro='', numero='';
+    let nomeCompleto='';
     try{
       const res=await fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lng+'&format=jsonv2&accept-language=pt-BR&zoom=17',{headers:{'Accept-Language':'pt-BR'}});
+      if(!res.ok){throw new Error('Falha na busca');}
       const d=await res.json();
       const addr=d.address||{};
       cidade=addr.city||addr.town||addr.village||addr.municipality||addr.county||addr.state||'';
       logradouro=addr.road||addr.pedestrian||addr.footway||addr.path||addr.highway||'';
       numero=addr.house_number||'';
+      nomeCompleto=d.display_name||'';
     }catch(err){}
     if(!logradouro){
       logradouro=await logradouroMaisProximo(lat,lng);
     }
-    document.getElementById('cidade').value=cidade;
-    document.getElementById('endereco').value=[logradouro,numero].filter(Boolean).join(', ');
+    if(idSelecao!==selecaoAtual){return;}
+    const enderecoEncontrado=[logradouro,numero].filter(Boolean).join(', ');
+    if(cidade){document.getElementById('cidade').value=cidade;}
+    if(enderecoEncontrado){document.getElementById('endereco').value=enderecoEncontrado;}
+    if(nomeCompleto&&buscaInput&&!(opcoes&&opcoes.manterBusca)){buscaInput.value=nomeCompleto;}
+    const cobertura=dentro
+      ? 'Dentro da área estimada de atendimento ('+distanciaKm+' km de Irecê).'
+      : 'Fora do raio padrão ('+distanciaKm+' km de Irecê). Ainda podemos avaliar o projeto.';
+    definirStatus(cobertura+(!cidade&&!enderecoEncontrado?' Confirme o endereço no formulário.':''),dentro?'success':'warning');
+    marcadorLocal.bindPopup('<strong>Local do empreendimento</strong><br>'+cobertura).openPopup();
+    continuarBtn.hidden=false;
+  }
+
+  async function buscarEndereco(){
+    if(buscaBtn.disabled){return;}
+    const consulta=(buscaInput.value||'').trim();
+    if(consulta.length<3){definirStatus('Digite pelo menos três caracteres para buscar.','error');buscaInput.focus();return;}
+    const idBusca=++selecaoAtual;
+    buscaBtn.disabled=true;
+    definirStatus('Procurando endereço...','loading');
+    try{
+      const url='https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=br&addressdetails=1&accept-language=pt-BR&q='+encodeURIComponent(consulta);
+      const res=await fetch(url,{headers:{'Accept-Language':'pt-BR'}});
+      if(!res.ok){throw new Error('Falha na busca');}
+      const dados=await res.json();
+      if(idBusca!==selecaoAtual){return;}
+      if(!dados.length){definirStatus('Endereço não encontrado. Tente incluir cidade e estado.','error');return;}
+      buscaInput.value=dados[0].display_name||consulta;
+      await selecionarLocalizacao(L.latLng(parseFloat(dados[0].lat),parseFloat(dados[0].lon)),{recentralizar:true,zoom:15,manterBusca:true,idOperacao:idBusca});
+    }catch(err){
+      if(idBusca===selecaoAtual){definirStatus('Não foi possível buscar agora. Tente novamente ou clique no mapa.','error');}
+    }finally{buscaBtn.disabled=false;}
+  }
+
+  function usarMinhaLocalizacao(){
+    if(!navigator.geolocation){definirStatus('Seu navegador não oferece geolocalização.','error');return;}
+    localBtn.disabled=true;
+    const idLocalizacao=++selecaoAtual;
+    definirStatus('Obtendo sua localização com segurança...','loading');
+    navigator.geolocation.getCurrentPosition(
+      pos=>{
+        localBtn.disabled=false;
+        if(idLocalizacao===selecaoAtual){selecionarLocalizacao(L.latLng(pos.coords.latitude,pos.coords.longitude),{recentralizar:true,zoom:16,idOperacao:idLocalizacao});}
+      },
+      erro=>{
+        localBtn.disabled=false;
+        const mensagens={1:'Permissão de localização negada. Você pode pesquisar o endereço.',2:'Não foi possível determinar sua localização.',3:'A localização demorou demais. Tente novamente.'};
+        if(idLocalizacao===selecaoAtual){definirStatus(mensagens[erro.code]||'Não foi possível usar sua localização.','error');}
+      },
+      {enableHighAccuracy:true,timeout:12000,maximumAge:60000}
+    );
+  }
+
+  mapa.on('click',ev=>selecionarLocalizacao(ev.latlng,{recentralizar:false}));
+  buscaBtn.addEventListener('click',buscarEndereco);
+  buscaInput.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();buscarEndereco();}});
+  localBtn.addEventListener('click',usarMinhaLocalizacao);
+  continuarBtn.addEventListener('click',()=>{
     const form=document.getElementById('contactForm');
-    if(form){form.scrollIntoView({behavior:'smooth',block:'center'});}
+    if(form){form.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>document.getElementById('cidade').focus(),650);}
   });
+  const formContato=document.getElementById('contactForm');
+  if(formContato){formContato.addEventListener('reset',()=>setTimeout(()=>{
+    selecaoAtual++;
+    if(marcadorLocal){mapa.removeLayer(marcadorLocal);marcadorLocal=null;}
+    buscaInput.value='';
+    continuarBtn.hidden=true;
+    definirStatus('Selecione uma localização para consultar a cobertura.','');
+    mapa.fitBounds(area.getBounds(),{padding:[40,40]});
+  },0));}
 }
 </script>
 </body>
